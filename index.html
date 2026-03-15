@@ -1,18 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-8HKEKVB8PM"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-8HKEKVB8PM');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Automated Premium Selling Trading Algo — Performance Dashboard</title>
+<title>Trading Journal — Performance Dashboard</title>
+<!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-8HKEKVB8PM"></script><script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-8HKEKVB8PM');</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a18; padding: 24px; }
@@ -23,13 +15,13 @@
   .metric-value { font-size: 20px; font-weight: 500; color: #1a1a18; }
   .metric-value.info    { color: #185fa5; }
   .metric-value.success { color: #0f6e56; }
-  .metric-sub { font-size: 11px; color: #888780; margin-top: 2px; }
+  .metric-sub  { font-size: 11px; color: #888780; margin-top: 2px; }
   .legend { display: flex; gap: 20px; font-size: 12px; color: #73726c; margin-bottom: 4px; flex-wrap: wrap; align-items: center; }
   .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-  .chart-wrap { position: relative; width: 100%; height: 360px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; margin-bottom: 8px; }
-  .pl-wrap    { position: relative; width: 100%; height: 130px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; margin-bottom: 6px; }
-  .monthly-wrap { position: relative; width: 100%; height: 260px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; }
+  .legend-dot  { width: 10px; height: 10px; border-radius: 2px; }
+  .chart-wrap  { position: relative; width: 100%; height: 360px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; margin-bottom: 8px; }
+  .pl-wrap     { position: relative; width: 100%; height: 130px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; margin-bottom: 6px; }
+  .monthly-wrap{ position: relative; width: 100%; height: 260px; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; padding: 8px; }
   .section-label { font-size: 12px; font-weight: 500; color: #73726c; margin: 20px 0 6px; }
   .dd-table { width: 100%; font-size: 12px; border-collapse: collapse; background: #fff; border-radius: 8px; border: 0.5px solid #d3d1c7; overflow: hidden; }
   .dd-table th { color: #73726c; font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 0.5px solid #d3d1c7; background: #f9f9f7; }
@@ -41,7 +33,7 @@
 
   @media (prefers-color-scheme: dark) {
     body { background: #1c1c1a; color: #c2c0b6; }
-    h1 { color: #e8e6dc; }
+    h1   { color: #e8e6dc; }
     .metric { background: #2c2c2a; }
     .metric-label { color: #9c9a92; }
     .metric-value { color: #e8e6dc; }
@@ -60,26 +52,9 @@
 </style>
 </head>
 <body>
+<h1>Trading Journal — Performance Dashboard</h1>
 
-<h1>Automated Premium Selling Trading Algo — Performance Dashboard</h1>
-
-<div class="metric-grid">
-  <div class="metric">
-    <div class="metric-label">CAGR</div>
-    <div class="metric-value info">10.53%</div>
-    <div class="metric-sub">Annualized</div>
-  </div>
-  <div class="metric">
-    <div class="metric-label">Win rate</div>
-    <div class="metric-value success">83.6%</div>
-    <div class="metric-sub">112W / 22L</div>
-  </div>
-  <div class="metric">
-    <div class="metric-label">Sharpe ratio</div>
-    <div class="metric-value success">2.69</div>
-    <div class="metric-sub">vs 4.3% risk-free</div>
-  </div>
-</div>
+<div class="metric-grid" id="metricGrid"></div>
 
 <div class="legend">
   <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
@@ -93,211 +68,233 @@
 
 <div class="section-label">Top 3 drawdown periods</div>
 <table class="dd-table">
-  <thead>
-    <tr><th></th><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><span class="badge" style="background:rgba(226,75,74,0.9);">1</span></td>
-      <td>Jan 16, 2026</td><td>Feb 3, 2026</td><td>Feb 25, 2026</td>
-      <td class="dd-amt">-$5,010 (-1.1%)</td><td>40 days</td>
-    </tr>
-    <tr>
-      <td><span class="badge" style="background:rgba(226,75,74,0.6);">2</span></td>
-      <td>Dec 11, 2025</td><td>Dec 12, 2025</td><td>Dec 30, 2025</td>
-      <td class="dd-amt">-$3,770 (-0.8%)</td><td>19 days</td>
-    </tr>
-    <tr>
-      <td><span class="badge" style="background:rgba(226,75,74,0.4);">3</span></td>
-      <td>Nov 18, 2025</td><td>Nov 20, 2025</td><td>Dec 1, 2025</td>
-      <td class="dd-amt">-$2,405 (-0.5%)</td><td>13 days</td>
-    </tr>
-  </tbody>
+  <thead><tr><th></th><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr></thead>
+  <tbody id="ddBody"></tbody>
 </table>
 
 <div class="section-label">Monthly P&amp;L breakdown</div>
 <div class="monthly-wrap"><canvas id="monthlyChart"></canvas></div>
 
-<p class="disclaimer">These results exclude interest, dividends and performance of the underlying portfolio and reflect only the premium harvested as a direct result of the automated trading algorithm since inception.</p>
+<p class="disclaimer">Underlying portfolio invested 100% at the 4% risk free rate.</p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const raw = [
-  {d:'8/29/2025',pl:250,bal:442678.22,w:true},{d:'9/2/2025',pl:450,bal:443128.22,w:true},
-  {d:'9/3/2025',pl:215,bal:443343.22,w:true},{d:'9/4/2025',pl:35,bal:443378.22,w:true},
-  {d:'9/5/2025',pl:-575,bal:442803.22,w:false},{d:'9/8/2025',pl:245,bal:443048.22,w:true},
-  {d:'9/9/2025',pl:345,bal:443393.22,w:true},{d:'9/10/2025',pl:320,bal:443713.22,w:true},
-  {d:'9/11/2025',pl:-330,bal:443383.22,w:false},{d:'9/12/2025',pl:320,bal:443703.22,w:true},
-  {d:'9/15/2025',pl:210,bal:443913.22,w:true},{d:'9/16/2025',pl:340,bal:444253.22,w:true},
-  {d:'9/17/2025',pl:820,bal:445073.22,w:true},{d:'9/18/2025',pl:465,bal:445538.22,w:true},
-  {d:'9/19/2025',pl:345,bal:445883.22,w:true},{d:'9/22/2025',pl:-260,bal:445623.22,w:false},
-  {d:'9/23/2025',pl:275,bal:445898.22,w:true},{d:'9/24/2025',pl:260,bal:446158.22,w:true},
-  {d:'9/25/2025',pl:420,bal:446578.22,w:true},{d:'9/26/2025',pl:385,bal:446963.22,w:true},
-  {d:'9/29/2025',pl:295,bal:447258.22,w:true},{d:'9/30/2025',pl:365,bal:447623.22,w:true},
-  {d:'10/1/2025',pl:-185,bal:447438.22,w:false},{d:'10/2/2025',pl:325,bal:447763.22,w:true},
-  {d:'10/3/2025',pl:280,bal:448043.22,w:true},{d:'10/6/2025',pl:265,bal:448308.22,w:true},
-  {d:'10/7/2025',pl:390,bal:448698.22,w:true},{d:'10/8/2025',pl:270,bal:448968.22,w:true},
-  {d:'10/9/2025',pl:355,bal:449323.22,w:true},{d:'10/10/2025',pl:-1165,bal:448158.22,w:false},
-  {d:'10/13/2025',pl:140,bal:448298.22,w:true},{d:'10/14/2025',pl:625,bal:448923.22,w:true},
-  {d:'10/15/2025',pl:690,bal:449613.22,w:true},{d:'10/16/2025',pl:940,bal:450553.22,w:true},
-  {d:'10/17/2025',pl:825,bal:451378.22,w:true},{d:'10/20/2025',pl:90,bal:451468.22,w:true},
-  {d:'10/21/2025',pl:400,bal:451868.22,w:true},{d:'10/22/2025',pl:-1160,bal:450708.22,w:false},
-  {d:'10/23/2025',pl:505,bal:451213.22,w:true},{d:'10/24/2025',pl:500,bal:451713.22,w:true},
-  {d:'10/27/2025',pl:190,bal:451903.22,w:true},{d:'10/28/2025',pl:415,bal:452318.22,w:true},
-  {d:'10/29/2025',pl:590,bal:452908.22,w:true},{d:'10/30/2025',pl:585,bal:453493.22,w:true},
-  {d:'10/31/2025',pl:600,bal:454093.22,w:true},{d:'11/3/2025',pl:300,bal:454393.22,w:true},
-  {d:'11/4/2025',pl:430,bal:454823.22,w:true},{d:'11/5/2025',pl:525,bal:455348.22,w:true},
-  {d:'11/6/2025',pl:195,bal:455543.22,w:true},{d:'11/7/2025',pl:-1040,bal:454503.22,w:false},
-  {d:'11/10/2025',pl:395,bal:454898.22,w:true},{d:'11/11/2025',pl:320,bal:455218.22,w:true},
-  {d:'11/12/2025',pl:385,bal:455603.22,w:true},{d:'11/13/2025',pl:-1240,bal:454363.22,w:false},
-  {d:'11/14/2025',pl:750,bal:455113.22,w:true},{d:'11/17/2025',pl:-290,bal:454823.22,w:false},
-  {d:'11/18/2025',pl:820,bal:455643.22,w:true},{d:'11/19/2025',pl:-1240,bal:454403.22,w:false},
-  {d:'11/20/2025',pl:-1165,bal:453238.22,w:false},{d:'11/21/2025',pl:1160,bal:454398.22,w:true},
-  {d:'11/24/2025',pl:75,bal:454473.22,w:true},{d:'11/25/2025',pl:-230,bal:454243.22,w:false},
-  {d:'11/26/2025',pl:610,bal:454853.22,w:true},{d:'11/28/2025',pl:365,bal:455218.22,w:true},
-  {d:'12/1/2025',pl:535,bal:455753.22,w:true},{d:'12/2/2025',pl:525,bal:456278.22,w:true},
-  {d:'12/3/2025',pl:720,bal:456998.22,w:true},{d:'12/4/2025',pl:530,bal:457528.22,w:true},
-  {d:'12/5/2025',pl:530,bal:458058.22,w:true},{d:'12/8/2025',pl:350,bal:458408.22,w:true},
-  {d:'12/9/2025',pl:415,bal:458823.22,w:true},{d:'12/11/2025',pl:590,bal:459413.22,w:true},
-  {d:'12/12/2025',pl:-3770,bal:455643.22,w:false},{d:'12/15/2025',pl:525,bal:456168.22,w:true},
-  {d:'12/16/2025',pl:270,bal:456438.22,w:true},{d:'12/17/2025',pl:665,bal:457103.22,w:true},
-  {d:'12/18/2025',pl:680,bal:457783.22,w:true},{d:'12/19/2025',pl:290,bal:458073.22,w:true},
-  {d:'12/22/2025',pl:315,bal:458388.22,w:true},{d:'12/23/2025',pl:240,bal:458628.22,w:true},
-  {d:'12/24/2025',pl:125,bal:458753.22,w:true},{d:'12/26/2025',pl:190,bal:458943.22,w:true},
-  {d:'12/29/2025',pl:255,bal:459198.22,w:true},{d:'12/30/2025',pl:255,bal:459453.22,w:true},
-  {d:'12/31/2025',pl:320,bal:459773.22,w:true},{d:'1/2/2026',pl:360,bal:460133.22,w:true},
-  {d:'1/5/2026',pl:315,bal:460448.22,w:true},{d:'1/6/2026',pl:300,bal:460748.22,w:true},
-  {d:'1/7/2026',pl:33.9,bal:460782.12,w:true},{d:'1/8/2026',pl:355,bal:461137.12,w:true},
-  {d:'1/9/2026',pl:505,bal:461642.12,w:true},{d:'1/12/2026',pl:350,bal:461992.12,w:true},
-  {d:'1/13/2026',pl:320,bal:462312.12,w:true},{d:'1/14/2026',pl:630,bal:462942.12,w:true},
-  {d:'1/15/2026',pl:345,bal:463287.12,w:true},{d:'1/16/2026',pl:330,bal:463617.12,w:true},
-  {d:'1/20/2026',pl:-2375,bal:461242.12,w:false},{d:'1/21/2026',pl:-1225,bal:460017.12,w:false},
-  {d:'1/22/2026',pl:380,bal:460397.12,w:true},{d:'1/23/2026',pl:535,bal:460932.12,w:true},
-  {d:'1/26/2026',pl:335,bal:461267.12,w:true},{d:'1/27/2026',pl:325,bal:461592.12,w:true},
-  {d:'1/28/2026',pl:575,bal:462167.12,w:true},{d:'1/29/2026',pl:-2030,bal:460137.12,w:false},
-  {d:'1/30/2026',pl:840,bal:460977.12,w:true},{d:'2/2/2026',pl:-180,bal:460797.12,w:false},
-  {d:'2/3/2026',pl:-2190,bal:458607.12,w:false},{d:'2/4/2026',pl:920,bal:459527.12,w:true},
-  {d:'2/5/2026',pl:1195,bal:460722.12,w:true},{d:'2/6/2026',pl:615,bal:461337.12,w:true},
-  {d:'2/9/2026',pl:220,bal:461557.12,w:true},{d:'2/10/2026',pl:415,bal:461972.12,w:true},
-  {d:'2/11/2026',pl:385,bal:462357.12,w:true},{d:'2/12/2026',pl:-1530,bal:460827.12,w:false},
-  {d:'2/13/2026',pl:1060,bal:461887.12,w:true},{d:'2/17/2026',pl:-1415,bal:460472.12,w:false},
-  {d:'2/18/2026',pl:150,bal:460622.12,w:true},{d:'2/19/2026',pl:730,bal:461352.12,w:true},
-  {d:'2/20/2026',pl:205,bal:461557.12,w:true},{d:'2/23/2026',pl:960,bal:462517.12,w:true},
-  {d:'2/24/2026',pl:760,bal:463277.12,w:true},{d:'2/25/2026',pl:520,bal:463797.12,w:true},
-  {d:'2/26/2026',pl:620,bal:464417.12,w:true},{d:'2/27/2026',pl:855,bal:465272.12,w:true},
-  {d:'3/2/2026',pl:245,bal:465517.12,w:true},{d:'3/3/2026',pl:735,bal:466252.12,w:true},
-  {d:'3/4/2026',pl:915,bal:467167.12,w:true},{d:'3/5/2026',pl:-690,bal:466477.12,w:false},
-  {d:'3/6/2026',pl:995,bal:467472.12,w:true},{d:'3/9/2026',pl:-1690,bal:465782.12,w:false},
-  {d:'3/10/2026',pl:960,bal:466742.12,w:true},{d:'3/11/2026',pl:760,bal:467502.12,w:true},
-  {d:'3/12/2026',pl:900,bal:468402.12,w:true},{d:'3/13/2026',pl:1070,bal:469472.12,w:true},
+const START_BAL = 442428.22;
+const RF_DAILY  = 0.04 / 365.25;
+
+const rawPL = [
+  ['8/29/2025',250],['9/2/2025',450],['9/3/2025',215],['9/4/2025',35],['9/5/2025',-575],
+  ['9/8/2025',245],['9/9/2025',345],['9/10/2025',320],['9/11/2025',-330],['9/12/2025',320],
+  ['9/15/2025',210],['9/16/2025',340],['9/17/2025',820],['9/18/2025',465],['9/19/2025',345],
+  ['9/22/2025',-260],['9/23/2025',275],['9/24/2025',260],['9/25/2025',420],['9/26/2025',385],
+  ['9/29/2025',295],['9/30/2025',365],['10/1/2025',-185],['10/2/2025',325],['10/3/2025',280],
+  ['10/6/2025',265],['10/7/2025',390],['10/8/2025',270],['10/9/2025',355],['10/10/2025',-1165],
+  ['10/13/2025',140],['10/14/2025',625],['10/15/2025',690],['10/16/2025',940],['10/17/2025',825],
+  ['10/20/2025',90],['10/21/2025',400],['10/22/2025',-1160],['10/23/2025',505],['10/24/2025',500],
+  ['10/27/2025',190],['10/28/2025',415],['10/29/2025',590],['10/30/2025',585],['10/31/2025',600],
+  ['11/3/2025',300],['11/4/2025',430],['11/5/2025',525],['11/6/2025',195],['11/7/2025',-1040],
+  ['11/10/2025',395],['11/11/2025',320],['11/12/2025',385],['11/13/2025',-1240],['11/14/2025',750],
+  ['11/17/2025',-290],['11/18/2025',820],['11/19/2025',-1240],['11/20/2025',-1165],['11/21/2025',1160],
+  ['11/24/2025',75],['11/25/2025',-230],['11/26/2025',610],['11/28/2025',365],
+  ['12/1/2025',535],['12/2/2025',525],['12/3/2025',720],['12/4/2025',530],['12/5/2025',530],
+  ['12/8/2025',350],['12/9/2025',415],['12/11/2025',590],['12/12/2025',-3770],
+  ['12/15/2025',525],['12/16/2025',270],['12/17/2025',665],['12/18/2025',680],['12/19/2025',290],
+  ['12/22/2025',315],['12/23/2025',240],['12/24/2025',125],['12/26/2025',190],
+  ['12/29/2025',255],['12/30/2025',255],['12/31/2025',320],
+  ['1/2/2026',360],['1/5/2026',315],['1/6/2026',300],['1/7/2026',33.9],['1/8/2026',355],
+  ['1/9/2026',505],['1/12/2026',350],['1/13/2026',320],['1/14/2026',630],['1/15/2026',345],
+  ['1/16/2026',330],['1/20/2026',-2375],['1/21/2026',-1225],['1/22/2026',380],['1/23/2026',535],
+  ['1/26/2026',335],['1/27/2026',325],['1/28/2026',575],['1/29/2026',-2030],['1/30/2026',840],
+  ['2/2/2026',-180],['2/3/2026',-2190],['2/4/2026',920],['2/5/2026',1195],['2/6/2026',615],
+  ['2/9/2026',220],['2/10/2026',415],['2/11/2026',385],['2/12/2026',-1530],['2/13/2026',1060],
+  ['2/17/2026',-1415],['2/18/2026',150],['2/19/2026',730],['2/20/2026',205],['2/23/2026',960],
+  ['2/24/2026',760],['2/25/2026',520],['2/26/2026',620],['2/27/2026',855],
+  ['3/2/2026',240],['3/3/2026',710],['3/4/2026',895],['3/5/2026',-715],['3/6/2026',995],
+  ['3/9/2026',-1720],['3/10/2026',935],['3/11/2026',740],['3/12/2026',875],['3/13/2026',1070],
 ];
+
+function parseDate(s) {
+  const p = s.split('/');
+  return new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]));
+}
+
+let bal = START_BAL;
+const raw = rawPL.map(([d, pl]) => {
+  bal = Math.round((bal + pl) * 100) / 100;
+  return { d, pl, bal, w: pl >= 0 };
+});
+
+const dailyInterest = raw.map((r, i) => {
+  if (i === 0) return 0;
+  const gap = (parseDate(r.d) - parseDate(raw[i-1].d)) / 86400000;
+  return raw[i-1].bal * RF_DAILY * gap;
+});
+let cumInt = 0;
+const adjBals = raw.map((r, i) => {
+  cumInt += dailyInterest[i];
+  return Math.round((r.bal + cumInt) * 100) / 100;
+});
+
+const n = raw.length;
+const wins = raw.filter(r => r.w).length;
+const losses = n - wins;
+const winRate = (wins / n * 100).toFixed(1);
+const netPremium = Math.round(raw.reduce((s, r) => s + r.pl, 0));
+const netInterest = Math.round(dailyInterest.reduce((s, v) => s + v, 0));
+const years = (parseDate(raw[n-1].d) - parseDate(raw[0].d)) / (365.25 * 86400000);
+const cagr = ((adjBals[n-1] / START_BAL) ** (1 / years) - 1) * 100;
+const pctR = raw.map(r => r.pl / START_BAL);
+const meanR = pctR.reduce((s,v) => s+v, 0) / n;
+const stdR  = Math.sqrt(pctR.reduce((s,v) => s+(v-meanR)**2, 0) / (n-1));
+const sharpe = ((meanR - 0.04/252) / stdR * Math.sqrt(252)).toFixed(2);
+
+document.getElementById('metricGrid').innerHTML = `
+  <div class="metric">
+    <div class="metric-label">CAGR</div>
+    <div class="metric-value info">${cagr.toFixed(2)}%</div>
+    <div class="metric-sub">Net option premium: $${netPremium.toLocaleString()}</div>
+    <div class="metric-sub">Net interest: $${netInterest.toLocaleString()}</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Win rate</div>
+    <div class="metric-value success">${winRate}%</div>
+    <div class="metric-sub">${wins}W / ${losses}L</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Sharpe ratio</div>
+    <div class="metric-value success">${sharpe}</div>
+    <div class="metric-sub">vs 4.0% risk-free</div>
+  </div>`;
+
+let runPeak = adjBals[0], runPeakIdx = 0;
+const ddPeriods = [];
+let inDD = false, peakIdx = 0, troughIdx = 0, troughVal = Infinity;
+for (let i = 0; i < n; i++) {
+  if (adjBals[i] >= runPeak) { runPeak = adjBals[i]; runPeakIdx = i; }
+  if (adjBals[i] < runPeak) {
+    if (!inDD) { inDD = true; peakIdx = runPeakIdx; troughIdx = i; troughVal = adjBals[i]; }
+    else if (adjBals[i] < troughVal) { troughVal = adjBals[i]; troughIdx = i; }
+  } else if (inDD) {
+    ddPeriods.push({ peakIdx, troughIdx, recoveryIdx: i,
+      amount: Math.round(adjBals[peakIdx] - troughVal),
+      days: Math.round((parseDate(raw[i].d) - parseDate(raw[peakIdx].d)) / 86400000) });
+    inDD = false; troughVal = Infinity;
+  }
+}
+if (inDD) ddPeriods.push({ peakIdx, troughIdx, recoveryIdx: n-1,
+  amount: Math.round(adjBals[peakIdx] - troughVal),
+  days: Math.round((parseDate(raw[n-1].d) - parseDate(raw[peakIdx].d)) / 86400000) });
+ddPeriods.sort((a,b) => b.amount - a.amount);
+const top3 = ddPeriods.slice(0, 3);
+
+const fmtDate = s => { const p=s.split('/'); return new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1])).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
+const ddOp = ['0.9','0.6','0.4'];
+document.getElementById('ddBody').innerHTML = top3.map((dd,i) => `
+  <tr>
+    <td><span class="badge" style="background:rgba(226,75,74,${ddOp[i]});">${i+1}</span></td>
+    <td>${fmtDate(raw[dd.peakIdx].d)}</td><td>${fmtDate(raw[dd.troughIdx].d)}</td><td>${fmtDate(raw[dd.recoveryIdx].d)}</td>
+    <td class="dd-amt">-$${dd.amount.toLocaleString()} (-${(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)}%)</td>
+    <td>${dd.days} days</td>
+  </tr>`).join('');
 
 const labels = raw.map(r => r.d);
 const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 const gridColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
 const textColor = dark ? '#9c9a92' : '#73726c';
-
-const top3 = [
-  { peakLabel:'1/16/2026',  recoveryLabel:'2/25/2026',  peakVal:463617.12, amount:5010, pct:'1.1', days:40 },
-  { peakLabel:'12/11/2025', recoveryLabel:'12/30/2025', peakVal:459413.22, amount:3770, pct:'0.8', days:19 },
-  { peakLabel:'11/18/2025', recoveryLabel:'12/1/2025',  peakVal:455643.22, amount:2405, pct:'0.5', days:13 },
-];
-const ddStyles = [
-  { stroke:'rgba(226,75,74,1)',    lw:2   },
-  { stroke:'rgba(226,75,74,0.65)',lw:1.5 },
-  { stroke:'rgba(226,75,74,0.45)',lw:1.2 },
-];
-const LEG_H = 12;
+const ddStyles = [{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
 
 const drawdownPlugin = {
   id:'drawdownBrackets',
   afterDraw(chart) {
     const { ctx, chartArea, scales } = chart;
     if (!chartArea) return;
-    top3.forEach((dd,ri) => {
-      const peakI=labels.indexOf(dd.peakLabel), recI=labels.indexOf(dd.recoveryLabel);
-      if (peakI<0||recI<0) return;
-      const x1=scales.x.getPixelForValue(peakI), x2=scales.x.getPixelForValue(recI);
-      const baseY=scales.y.getPixelForValue(dd.peakVal), topY=baseY-LEG_H;
+    top3.forEach((dd, ri) => {
+      const x1=scales.x.getPixelForValue(dd.peakIdx), x2=scales.x.getPixelForValue(dd.recoveryIdx);
+      const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]), topY=baseY-12;
       const s=ddStyles[ri];
       ctx.save();
       ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
       ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
       ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+dd.pct+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
+      ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
       ctx.restore();
     });
   }
 };
 
-new Chart(document.getElementById('mainChart').getContext('2d'),{
-  data:{ labels, datasets:[{ type:'line', label:'Account balance', data:raw.map(r=>r.bal),
+new Chart(document.getElementById('mainChart').getContext('2d'), {
+  data:{ labels, datasets:[{ type:'line', label:'Account balance', data:adjBals,
     borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.08)',
     fill:true, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.3 }] },
-  options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:24 } },
+  options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{top:24} },
     interaction:{ mode:'index', intersect:false },
-    plugins:{ legend:{ display:false },
+    plugins:{ legend:{display:false},
       tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
         borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:10,
         callbacks:{ label:ctx=>' Account balance: $'+Math.round(ctx.parsed.y).toLocaleString() } } },
     scales:{
-      x:{ ticks:{ color:textColor, font:{size:11}, maxTicksLimit:8, maxRotation:0 }, grid:{ color:gridColor } },
-      y:{ ticks:{ color:textColor, font:{size:11}, callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{ color:gridColor } }
+      x:{ ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0}, grid:{color:gridColor} },
+      y:{ ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'}, grid:{color:gridColor} }
     }
   }, plugins:[drawdownPlugin]
 });
 
-new Chart(document.getElementById('plChart').getContext('2d'),{
+new Chart(document.getElementById('plChart').getContext('2d'), {
   data:{ labels, datasets:[{ type:'bar', label:'Daily P&L', data:raw.map(r=>r.pl),
     backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'), borderRadius:2, barPercentage:0.8 }] },
   options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ display:false },
+    plugins:{ legend:{display:false},
       tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
         borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:8,
         callbacks:{ label:ctx=>{ const v=ctx.parsed.y; return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString(); } } } },
     scales:{
-      x:{ ticks:{ display:false }, grid:{ color:gridColor } },
-      y:{ ticks:{ color:textColor, font:{size:10}, callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k' }, grid:{ color:gridColor } }
+      x:{ ticks:{display:false}, grid:{color:gridColor} },
+      y:{ ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'}, grid:{color:gridColor} }
     }
   }
 });
 
-// Monthly — exclude Aug 2025
-const monthOrder = ['Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
-const monthMap = {
-  '9/2025':'Sep 25','10/2025':'Oct 25','11/2025':'Nov 25',
-  '12/2025':'Dec 25','1/2026':'Jan 26','2/2026':'Feb 26','3/2026':'Mar 26'
-};
-const monthly = {};
-monthOrder.forEach(m => monthly[m] = { pls:[], wins:0, losses:0 });
-raw.forEach(r => {
-  const p=r.d.split('/'), key=monthMap[p[0]+'/'+p[2]];
-  if (!key) return;
-  monthly[key].pls.push(r.pl);
-  r.w ? monthly[key].wins++ : monthly[key].losses++;
+const monthDefs = [
+  {key:'Sep 25',mo:'9',yr:'2025'},{key:'Oct 25',mo:'10',yr:'2025'},{key:'Nov 25',mo:'11',yr:'2025'},
+  {key:'Dec 25',mo:'12',yr:'2025'},{key:'Jan 26',mo:'1',yr:'2026'},{key:'Feb 26',mo:'2',yr:'2026'},
+  {key:'Mar 26',mo:'3',yr:'2026'},
+];
+const mData = {};
+monthDefs.forEach(m => mData[m.key] = { pls:[], wins:0, losses:0, interest:0 });
+raw.forEach((r, i) => {
+  const p=r.d.split('/'), def=monthDefs.find(m=>m.mo===p[0]&&m.yr===p[2]);
+  if (!def) return;
+  mData[def.key].pls.push(r.pl);
+  mData[def.key].interest += dailyInterest[i];
+  r.w ? mData[def.key].wins++ : mData[def.key].losses++;
 });
-const mTotals = monthOrder.map(m => Math.round(monthly[m].pls.reduce((a,b)=>a+b,0)));
-const mWR     = monthOrder.map(m => { const d=monthly[m]; return Math.round(d.wins/(d.wins+d.losses)*100); });
-const mBest   = monthOrder.map(m => Math.round(Math.max(...monthly[m].pls)));
-const mWorst  = monthOrder.map(m => Math.round(Math.min(...monthly[m].pls)));
-const mColors = mTotals.map(v => v>=0 ? 'rgba(29,158,117,0.75)' : 'rgba(226,75,74,0.75)');
+const mLabels   = monthDefs.map(m=>m.key);
+const mPremium  = mLabels.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
+const mInterest = mLabels.map(k=>Math.round(mData[k].interest));
+const mTotals   = mLabels.map((k,i)=>mPremium[i]+mInterest[i]);
+const mWR       = mLabels.map(k=>{const d=mData[k];return Math.round(d.wins/(d.wins+d.losses)*100);});
+const mBest     = mLabels.map(k=>Math.round(Math.max(...mData[k].pls)));
+const mWorst    = mLabels.map(k=>Math.round(Math.min(...mData[k].pls)));
+const mAvg      = mLabels.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
+const mColors   = mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
 
-new Chart(document.getElementById('monthlyChart').getContext('2d'),{
+new Chart(document.getElementById('monthlyChart').getContext('2d'), {
   type:'bar',
-  data:{ labels:monthOrder, datasets:[{ label:'Monthly P&L', data:mTotals, backgroundColor:mColors, borderRadius:4, barPercentage:0.6 }] },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ display:false },
+  data:{ labels:mLabels, datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}] },
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false},
       tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
         borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:10,
-        callbacks:{ label:ctx=>{ const i=ctx.dataIndex, v=ctx.parsed.y;
-          return [' P&L: '+(v>=0?'+':'')+'$'+Math.abs(v).toLocaleString(),
+        callbacks:{ label:ctx=>{ const i=ctx.dataIndex,v=ctx.parsed.y;
+          return [' Total P&L: +'+'$'+Math.abs(v).toLocaleString(),
+                  ' Net interest: $'+mInterest[i].toLocaleString(),
                   ' Win rate: '+mWR[i]+'%',
                   ' Best day: +$'+mBest[i].toLocaleString(),
-                  ' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString()]; } } } },
+                  ' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString(),
+                  ' Avg day: '+(mAvg[i]>=0?'+':'')+'$'+mAvg[i].toLocaleString()]; } } } },
     scales:{
-      x:{ ticks:{ color:textColor, font:{size:11} }, grid:{ color:gridColor } },
-      y:{ ticks:{ color:textColor, font:{size:11}, callback:v=>'$'+(v/1000).toFixed(1)+'k' }, grid:{ color:gridColor } }
+      x:{ ticks:{color:textColor,font:{size:11}}, grid:{color:gridColor} },
+      y:{ ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'}, grid:{color:gridColor} }
     }
   }
 });
