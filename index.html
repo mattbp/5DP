@@ -9,6 +9,8 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a18; padding: 24px; }
   h1 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #1a1a18; }
+  .loading { font-size: 13px; color: #888780; padding: 40px 0; text-align: center; }
+  .error   { font-size: 13px; color: #791f1f; padding: 40px 0; text-align: center; }
   .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
   .metric { background: #f1efe8; border-radius: 8px; padding: 14px 16px; }
   .metric-label { font-size: 12px; color: #73726c; margin-bottom: 4px; }
@@ -30,6 +32,7 @@
   .badge { display: inline-block; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 500; text-align: center; line-height: 18px; color: #fff; }
   .dd-amt { color: #791f1f; font-weight: 500; }
   .disclaimer { margin-top: 16px; font-size: 11px; color: #888780; line-height: 1.6; border-top: 0.5px solid #d3d1c7; padding-top: 12px; font-style: italic; }
+  #dashboard { display: none; }
 
   @media (prefers-color-scheme: dark) {
     body { background: #1c1c1a; color: #c2c0b6; }
@@ -41,6 +44,7 @@
     .metric-value.success { color: #5dcaa5; }
     .metric-sub { color: #73726c; }
     .legend { color: #9c9a92; }
+    .loading { color: #73726c; }
     .chart-wrap, .pl-wrap, .monthly-wrap { background: #242422; border-color: #444441; }
     .dd-table { background: #242422; border-color: #444441; }
     .dd-table th { background: #2c2c2a; color: #9c9a92; border-color: #444441; }
@@ -54,215 +58,210 @@
 <body>
 
 <h1>Automated Premium Selling Algorithm Results</h1>
+<div id="status" class="loading">Loading data...</div>
 
-<div class="metric-grid" id="metricGrid"></div>
+<div id="dashboard">
+  <div class="metric-grid" id="metricGrid"></div>
 
-<div class="legend">
-  <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
-  <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
+    <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
+  </div>
+
+  <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  <div class="pl-wrap"><canvas id="plChart"></canvas></div>
+
+  <div class="section-label">Top 3 drawdown periods</div>
+  <table class="dd-table">
+    <thead><tr><th></th><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr></thead>
+    <tbody id="ddBody"></tbody>
+  </table>
+
+  <div class="section-label">Monthly P&amp;L breakdown</div>
+  <div class="monthly-wrap"><canvas id="monthlyChart"></canvas></div>
+
+  <p class="disclaimer" id="disclaimer"></p>
 </div>
-
-<div class="chart-wrap"><canvas id="mainChart"></canvas></div>
-<div class="pl-wrap"><canvas id="plChart"></canvas></div>
-
-<div class="section-label">Top 3 drawdown periods</div>
-<table class="dd-table">
-  <thead><tr><th></th><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr></thead>
-  <tbody id="ddBody"></tbody>
-</table>
-
-<div class="section-label">Monthly P&amp;L breakdown</div>
-<div class="monthly-wrap"><canvas id="monthlyChart"></canvas></div>
-
-<p class="disclaimer">Underlying portfolio invested 100% at the 4% risk free rate.</p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+const CSV_URL   = 'https://mattbp.github.io/5DP/data.csv';
 const START_BAL = 442428.22;
 const RF_DAILY  = 0.04 / 365.25;
-
-function fmt(v) {
-  const abs = Math.abs(v).toLocaleString();
-  return v < 0 ? `($${abs})` : `$${abs}`;
-}
-
-const rawPL = [
-  ['8/29/2025',250],['9/2/2025',450],['9/3/2025',215],['9/4/2025',35],['9/5/2025',-575],
-  ['9/8/2025',245],['9/9/2025',345],['9/10/2025',320],['9/11/2025',-330],['9/12/2025',320],
-  ['9/15/2025',210],['9/16/2025',340],['9/17/2025',820],['9/18/2025',465],['9/19/2025',345],
-  ['9/22/2025',-260],['9/23/2025',275],['9/24/2025',260],['9/25/2025',420],['9/26/2025',385],
-  ['9/29/2025',295],['9/30/2025',365],['10/1/2025',-185],['10/2/2025',325],['10/3/2025',280],
-  ['10/6/2025',265],['10/7/2025',390],['10/8/2025',270],['10/9/2025',355],['10/10/2025',-1165],
-  ['10/13/2025',140],['10/14/2025',625],['10/15/2025',690],['10/16/2025',940],['10/17/2025',825],
-  ['10/20/2025',90],['10/21/2025',400],['10/22/2025',-1160],['10/23/2025',505],['10/24/2025',500],
-  ['10/27/2025',190],['10/28/2025',415],['10/29/2025',590],['10/30/2025',585],['10/31/2025',600],
-  ['11/3/2025',300],['11/4/2025',430],['11/5/2025',525],['11/6/2025',195],['11/7/2025',-1040],
-  ['11/10/2025',395],['11/11/2025',320],['11/12/2025',385],['11/13/2025',-1240],['11/14/2025',750],
-  ['11/17/2025',-290],['11/18/2025',820],['11/19/2025',-1240],['11/20/2025',-1165],['11/21/2025',1160],
-  ['11/24/2025',75],['11/25/2025',-230],['11/26/2025',610],['11/28/2025',365],
-  ['12/1/2025',535],['12/2/2025',525],['12/3/2025',720],['12/4/2025',530],['12/5/2025',530],
-  ['12/8/2025',350],['12/9/2025',415],['12/11/2025',590],['12/12/2025',-3770],
-  ['12/15/2025',525],['12/16/2025',270],['12/17/2025',665],['12/18/2025',680],['12/19/2025',290],
-  ['12/22/2025',315],['12/23/2025',240],['12/24/2025',125],['12/26/2025',190],
-  ['12/29/2025',255],['12/30/2025',255],['12/31/2025',320],
-  ['1/2/2026',360],['1/5/2026',315],['1/6/2026',300],['1/7/2026',33.9],['1/8/2026',355],
-  ['1/9/2026',505],['1/12/2026',350],['1/13/2026',320],['1/14/2026',630],['1/15/2026',345],
-  ['1/16/2026',330],['1/20/2026',-2375],['1/21/2026',-1225],['1/22/2026',380],['1/23/2026',535],
-  ['1/26/2026',335],['1/27/2026',325],['1/28/2026',575],['1/29/2026',-2030],['1/30/2026',840],
-  ['2/2/2026',-180],['2/3/2026',-2190],['2/4/2026',920],['2/5/2026',1195],['2/6/2026',615],
-  ['2/9/2026',220],['2/10/2026',415],['2/11/2026',385],['2/12/2026',-1530],['2/13/2026',1060],
-  ['2/17/2026',-1415],['2/18/2026',150],['2/19/2026',730],['2/20/2026',205],['2/23/2026',960],
-  ['2/24/2026',760],['2/25/2026',520],['2/26/2026',620],['2/27/2026',855],
-  ['3/2/2026',240],['3/3/2026',710],['3/4/2026',895],['3/5/2026',-715],['3/6/2026',995],
-  ['3/9/2026',-1720],['3/10/2026',935],['3/11/2026',740],['3/12/2026',875],['3/13/2026',1070],
-];
 
 function parseDate(s) {
   if (s.includes('-')) { const [y,m,d]=s.split('-'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d)); }
   const [m,d,y]=s.split('/'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d));
 }
 
-let bal = START_BAL;
-const raw = rawPL.map(([d,pl]) => { bal=Math.round((bal+pl)*100)/100; return {d,pl,bal,w:pl>=0}; });
-
-const dailyInterest = raw.map((r,i) => {
-  if (i===0) return 0;
-  const gap=(parseDate(r.d)-parseDate(raw[i-1].d))/86400000;
-  return raw[i-1].bal*RF_DAILY*gap;
-});
-let cumInt=0;
-const adjBals = raw.map((r,i) => { cumInt+=dailyInterest[i]; return Math.round((r.bal+cumInt)*100)/100; });
-
-const n=raw.length, wins=raw.filter(r=>r.w).length, losses=n-wins;
-const winRate=(wins/n*100).toFixed(1);
-const netPremium=Math.round(raw.reduce((s,r)=>s+r.pl,0));
-const netInterest=Math.round(dailyInterest.reduce((s,v)=>s+v,0));
-const years=(parseDate(raw[n-1].d)-parseDate(raw[0].d))/(365.25*86400000);
-const cagrTotal   =((adjBals[n-1]/START_BAL)**(1/years)-1)*100;
-const cagrPremium =(((START_BAL+netPremium)/START_BAL)**(1/years)-1)*100;
-const cagrInterest=(((START_BAL+netInterest)/START_BAL)**(1/years)-1)*100;
-const pctR=raw.map(r=>r.pl/START_BAL), meanR=pctR.reduce((s,v)=>s+v,0)/n;
-const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
-const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
-
-document.getElementById('metricGrid').innerHTML=`
-  <div class="metric">
-    <div class="metric-label">CAGR</div>
-    <div class="metric-value info">${cagrTotal.toFixed(2)}%</div>
-    <div class="metric-sub">Net option premium: $${netPremium.toLocaleString()} (${cagrPremium.toFixed(2)}%)</div>
-    <div class="metric-sub">Net interest: $${netInterest.toLocaleString()} (${cagrInterest.toFixed(2)}%)</div>
-  </div>
-  <div class="metric">
-    <div class="metric-label">Win rate</div>
-    <div class="metric-value success">${winRate}%</div>
-    <div class="metric-sub">${wins}W / ${losses}L</div>
-  </div>
-  <div class="metric">
-    <div class="metric-label">Sharpe ratio</div>
-    <div class="metric-value success">${sharpe}</div>
-    <div class="metric-sub">vs 4.0% risk-free</div>
-  </div>`;
-
-let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
-for(let i=0;i<n;i++){
-  if(adjBals[i]>=runPeak){runPeak=adjBals[i];runPeakIdx=i;}
-  if(adjBals[i]<runPeak){
-    if(!inDD){inDD=true;peakIdx=runPeakIdx;troughIdx=i;troughVal=adjBals[i];}
-    else if(adjBals[i]<troughVal){troughVal=adjBals[i];troughIdx=i;}
-  } else if(inDD){
-    ddPeriods.push({peakIdx,troughIdx,recoveryIdx:i,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[i].d)-parseDate(raw[peakIdx].d))/86400000)});
-    inDD=false;troughVal=Infinity;
-  }
+function toDisplayDate(s) {
+  const dt = parseDate(s);
+  return `${dt.getMonth()+1}/${dt.getDate()}/${dt.getFullYear()}`;
 }
-if(inDD) ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
-ddPeriods.sort((a,b)=>b.amount-a.amount);
-const top3=ddPeriods.slice(0,3);
 
-const fmtDate=s=>parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-const ddOp=['0.9','0.6','0.4'];
-document.getElementById('ddBody').innerHTML=top3.map((dd,i)=>`
-  <tr>
-    <td><span class="badge" style="background:rgba(226,75,74,${ddOp[i]});">${i+1}</span></td>
-    <td>${fmtDate(raw[dd.peakIdx].d)}</td><td>${fmtDate(raw[dd.troughIdx].d)}</td><td>${fmtDate(raw[dd.recoveryIdx].d)}</td>
-    <td class="dd-amt">-$${dd.amount.toLocaleString()} (-${(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)}%)</td>
-    <td>${dd.days} days</td>
-  </tr>`).join('');
+async function loadCSV() {
+  const resp = await fetch(CSV_URL + '?t=' + Date.now());
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-const labels=raw.map(r=>r.d);
-const dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
-const gridColor=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)';
-const textColor=dark?'#9c9a92':'#73726c';
-const ddStyles=[{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
+  const lastModified = resp.headers.get('Last-Modified');
+  let dataAsOf = 'unknown';
+  if (lastModified) {
+    dataAsOf = new Date(lastModified).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    });
+  }
 
-const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
-  const{ctx,chartArea,scales}=chart; if(!chartArea) return;
-  top3.forEach((dd,ri)=>{
-    const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
-    const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]),topY=baseY-12;
-    const s=ddStyles[ri];
-    ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
-    ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
-    ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
-    ctx.restore();
+  const text = await resp.text();
+  const rawPL = text.trim().split('\n').slice(1)
+    .filter(r => r.trim())
+    .map(row => {
+      const [date, pl] = row.split(',');
+      return [toDisplayDate(date.trim().replace(/"/g,'')), parseFloat(pl.trim().replace(/"/g,''))];
+    });
+
+  return { rawPL, dataAsOf };
+}
+
+function buildDashboard(rawPL, dataAsOf) {
+  let bal = START_BAL;
+  const raw = rawPL.map(([d,pl]) => { bal=Math.round((bal+pl)*100)/100; return {d,pl,bal,w:pl>=0}; });
+
+  const dailyInterest = raw.map((r,i) => {
+    if (i===0) return 0;
+    const gap=(parseDate(r.d)-parseDate(raw[i-1].d))/86400000;
+    return raw[i-1].bal*RF_DAILY*gap;
   });
-}};
+  let cumInt=0;
+  const adjBals = raw.map((r,i) => { cumInt+=dailyInterest[i]; return Math.round((r.bal+cumInt)*100)/100; });
 
-new Chart(document.getElementById('mainChart').getContext('2d'),{
-  data:{labels,datasets:[{type:'line',label:'Account balance',data:adjBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}]},
-  options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{label:ctx=>' Account balance: $'+Math.round(ctx.parsed.y).toLocaleString()}}},
-    scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
-  },plugins:[drawdownPlugin]
-});
+  const n=raw.length, wins=raw.filter(r=>r.w).length, losses=n-wins;
+  const winRate=(wins/n*100).toFixed(1);
+  const netPremium=Math.round(raw.reduce((s,r)=>s+r.pl,0));
+  const netInterest=Math.round(dailyInterest.reduce((s,v)=>s+v,0));
+  const years=(parseDate(raw[n-1].d)-parseDate(raw[0].d))/(365.25*86400000);
+  const cagrTotal   =((adjBals[n-1]/START_BAL)**(1/years)-1)*100;
+  const cagrPremium =(((START_BAL+netPremium)/START_BAL)**(1/years)-1)*100;
+  const cagrInterest=(((START_BAL+netInterest)/START_BAL)**(1/years)-1)*100;
+  const pctR=raw.map(r=>r.pl/START_BAL), meanR=pctR.reduce((s,v)=>s+v,0)/n;
+  const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
+  const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
 
-new Chart(document.getElementById('plChart').getContext('2d'),{
-  data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();}}}},
-    scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
-});
+  document.getElementById('metricGrid').innerHTML=`
+    <div class="metric">
+      <div class="metric-label">CAGR</div>
+      <div class="metric-value info">${cagrTotal.toFixed(2)}%</div>
+      <div class="metric-sub">Net option premium: $${netPremium.toLocaleString()} (${cagrPremium.toFixed(2)}%)</div>
+      <div class="metric-sub">Net interest: $${netInterest.toLocaleString()} (${cagrInterest.toFixed(2)}%)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Win rate</div>
+      <div class="metric-value success">${winRate}%</div>
+      <div class="metric-sub">${wins}W / ${losses}L</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Sharpe ratio</div>
+      <div class="metric-value success">${sharpe}</div>
+      <div class="metric-sub">vs 4.0% risk-free</div>
+    </div>`;
 
-const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
-const filteredMonths=allMonths.filter(m=>{const[mo,yr]=m.split('/');return!(mo==='8'&&yr==='2025');});
-const monthLabels=filteredMonths.map(m=>{const[mo,yr]=m.split('/');return new Date(parseInt(yr),parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});});
-const mData={};
-filteredMonths.forEach(m=>mData[m]={pls:[],wins:0,losses:0,interest:0});
-raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(r.pl);mData[key].interest+=dailyInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
-const mPremium =filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
-const mInterest=filteredMonths.map(k=>Math.round(mData[k].interest));
-const mTotals  =filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
-const mWR      =filteredMonths.map(k=>{const d=mData[k];return Math.round(d.wins/(d.wins+d.losses)*100);});
-const mBest    =filteredMonths.map(k=>Math.round(Math.max(...mData[k].pls)));
-const mWorst   =filteredMonths.map(k=>Math.round(Math.min(...mData[k].pls)));
-const mAvg     =filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
-const mColors  =mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
+  document.getElementById('disclaimer').textContent =
+    `Underlying portfolio invested 100% at the 4% risk free rate. Above data is as of ${dataAsOf}.`;
 
-new Chart(document.getElementById('monthlyChart').getContext('2d'),{
-  type:'bar',
-  data:{labels:monthLabels,datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}]},
-  options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},
-      tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,
-        callbacks:{label:ctx=>{
-          const i=ctx.dataIndex;
-          return [
-            ` Option premium: ${fmt(mPremium[i])}`,
-            ` Win rate: ${mWR[i]}%`,
-            ` Avg day: ${fmt(mAvg[i])}`,
-            ` Worst day: ${fmt(mWorst[i])}`,
-            ` Best day: ${fmt(mBest[i])}`,
-          ];
-        }}
-      }
-    },
-    scales:{
-      x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},
-      y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}
+  let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
+  for(let i=0;i<n;i++){
+    if(adjBals[i]>=runPeak){runPeak=adjBals[i];runPeakIdx=i;}
+    if(adjBals[i]<runPeak){
+      if(!inDD){inDD=true;peakIdx=runPeakIdx;troughIdx=i;troughVal=adjBals[i];}
+      else if(adjBals[i]<troughVal){troughVal=adjBals[i];troughIdx=i;}
+    } else if(inDD){
+      ddPeriods.push({peakIdx,troughIdx,recoveryIdx:i,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[i].d)-parseDate(raw[peakIdx].d))/86400000)});
+      inDD=false;troughVal=Infinity;
     }
   }
-});
+  if(inDD) ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
+  ddPeriods.sort((a,b)=>b.amount-a.amount);
+  const top3=ddPeriods.slice(0,3);
+
+  const fmtDate=s=>parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const ddOp=['0.9','0.6','0.4'];
+  document.getElementById('ddBody').innerHTML=top3.map((dd,i)=>`
+    <tr>
+      <td><span class="badge" style="background:rgba(226,75,74,${ddOp[i]});">${i+1}</span></td>
+      <td>${fmtDate(raw[dd.peakIdx].d)}</td><td>${fmtDate(raw[dd.troughIdx].d)}</td><td>${fmtDate(raw[dd.recoveryIdx].d)}</td>
+      <td class="dd-amt">-$${dd.amount.toLocaleString()} (-${(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)}%)</td>
+      <td>${dd.days} days</td>
+    </tr>`).join('');
+
+  const labels=raw.map(r=>r.d);
+  const dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)';
+  const textColor=dark?'#9c9a92':'#73726c';
+  const ddStyles=[{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
+
+  const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
+    const{ctx,chartArea,scales}=chart; if(!chartArea) return;
+    top3.forEach((dd,ri)=>{
+      const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
+      const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]),topY=baseY-12;
+      const s=ddStyles[ri];
+      ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
+      ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
+      ctx.restore();
+    });
+  }};
+
+  new Chart(document.getElementById('mainChart').getContext('2d'),{
+    data:{labels,datasets:[{type:'line',label:'Account balance',data:adjBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{label:ctx=>' Account balance: $'+Math.round(ctx.parsed.y).toLocaleString()}}},
+      scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
+    },plugins:[drawdownPlugin]
+  });
+
+  new Chart(document.getElementById('plChart').getContext('2d'),{
+    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();}}}},
+      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+  });
+
+  const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
+  const filteredMonths=allMonths.filter(m=>{const[mo,yr]=m.split('/');return!(mo==='8'&&yr==='2025');});
+  const monthLabels=filteredMonths.map(m=>{const[mo,yr]=m.split('/');return new Date(parseInt(yr),parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});});
+  const mData={};
+  filteredMonths.forEach(m=>mData[m]={pls:[],wins:0,losses:0,interest:0});
+  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(r.pl);mData[key].interest+=dailyInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
+  const mPremium=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
+  const mInterest=filteredMonths.map(k=>Math.round(mData[k].interest));
+  const mTotals=filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
+  const mWR=filteredMonths.map(k=>{const d=mData[k];return Math.round(d.wins/(d.wins+d.losses)*100);});
+  const mBest=filteredMonths.map(k=>Math.round(Math.max(...mData[k].pls)));
+  const mWorst=filteredMonths.map(k=>Math.round(Math.min(...mData[k].pls)));
+  const mAvg=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
+  const mColors=mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
+
+  new Chart(document.getElementById('monthlyChart').getContext('2d'),{
+    type:'bar',data:{labels:monthLabels,datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,
+      callbacks:{label:ctx=>{const i=ctx.dataIndex,v=ctx.parsed.y;return[' Total P&L: $'+Math.abs(v).toLocaleString(),' Net interest: $'+mInterest[i].toLocaleString(),' Win rate: '+mWR[i]+'%',' Best day: +$'+mBest[i].toLocaleString(),' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString(),' Avg day: '+(mAvg[i]>=0?'+':'')+'$'+mAvg[i].toLocaleString()];}}}},
+      scales:{x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+  });
+}
+
+loadCSV()
+  .then(({ rawPL, dataAsOf }) => {
+    document.getElementById('status').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    buildDashboard(rawPL, dataAsOf);
+  })
+  .catch(err => {
+    document.getElementById('status').className = 'error';
+    document.getElementById('status').textContent = `Failed to load data: ${err.message}. Make sure data.csv is published at ${CSV_URL}`;
+  });
 </script>
 </body>
 </html>
