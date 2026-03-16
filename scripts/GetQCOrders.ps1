@@ -500,7 +500,27 @@ function Get-LiveTradingOrders {
             $ordersEndpoint = "/live/orders/read?projectId=$ProjectId&deployId=$DeployId&start=$batchStart&end=$batchEnd"
             
             Write-Verbose "  Fetching batch: indices $batchStart to $batchEnd"
-            $response = Invoke-QCApiCall -Endpoint $ordersEndpoint
+            
+            # Retry logic for "loading" state
+            $maxRetries = 3
+            $retryCount = 0
+            $response = $null
+            
+            do {
+                $response = Invoke-QCApiCall -Endpoint $ordersEndpoint
+                
+                # Check if API returned "loading" status (no orders key, but has status)
+                if ($response['status'] -eq 'loading' -or ($response['success'] -eq $true -and -not $response.ContainsKey('orders') -and -not $response.ContainsKey('length'))) {
+                    $retryCount++
+                    if ($retryCount -lt $maxRetries) {
+                        Write-Verbose "  API returned 'loading' status, retry $retryCount of $maxRetries..."
+                        Start-Sleep -Seconds 2
+                    }
+                }
+                else {
+                    break
+                }
+            } while ($retryCount -lt $maxRetries)
             
             if ($response['success'] -eq $false) {
                 $errorMsg = $response['errors'] -join ', '
