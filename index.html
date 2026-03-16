@@ -178,9 +178,9 @@ function buildDashboard(rawPL, dataAsOf) {
       <div class="metric-sub">${wins}W / ${losses}L</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Sharpe ratio</div>
-      <div class="metric-value success">${sharpe}</div>
-      <div class="metric-sub">vs 4.0% risk-free</div>
+      <div class="metric-label">Max drawdown</div>
+      <div class="metric-value" style="color:#a32d2d;">${maxDDpct.toFixed(1)}%</div>
+      <div class="metric-sub">($${Math.round(maxDD).toLocaleString()}) from peak</div>
     </div>
     <div class="metric">
       <div class="metric-label">Profit factor</div>
@@ -188,9 +188,9 @@ function buildDashboard(rawPL, dataAsOf) {
       <div class="metric-sub">$${Math.round(grossWins).toLocaleString()} wins / $${Math.round(grossLoss).toLocaleString()} losses</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Max drawdown</div>
-      <div class="metric-value" style="color:#a32d2d;">($${Math.round(maxDD).toLocaleString()})</div>
-      <div class="metric-sub">${maxDDpct.toFixed(1)}% from peak</div>
+      <div class="metric-label">Sharpe ratio</div>
+      <div class="metric-value success">${sharpe}</div>
+      <div class="metric-sub">vs 4.0% risk-free</div>
     </div>`;
 
   document.getElementById('disclaimer').textContent =
