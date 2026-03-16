@@ -1004,7 +1004,7 @@ try {
             $dateValue = $row.$dateCol
             # Normalize date to yyyy-MM-dd for consistent key comparison
             $dateKey = ([DateTime]::Parse($dateValue)).ToString('yyyy-MM-dd')
-            $mergedHash[$dateKey] = @{
+            $mergedHash[$dateKey] = [ordered]@{
                 $dateCol = $dateKey  # Use normalized format
                 $plCol = $row.$plCol
             }
@@ -1020,7 +1020,7 @@ try {
             } else {
                 $addedCount++
             }
-            $mergedHash[$dateKey] = @{
+            $mergedHash[$dateKey] = [ordered]@{
                 $dateCol = $dateKey
                 $plCol = $record.SumOrderValue
             }
