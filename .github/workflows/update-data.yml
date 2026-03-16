@@ -1,6 +1,8 @@
 name: Update QC Orders
 
 on:
+  repository_dispatch:
+    types: [order-filled]
   schedule:
     - cron: '10 21 * * *'  # 1:10 PM PST (UTC-8)
   workflow_dispatch:        # Allows manual triggering from the GitHub UI
