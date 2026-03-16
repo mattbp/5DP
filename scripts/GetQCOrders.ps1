@@ -326,9 +326,18 @@ function Get-AllDeploymentIds {
             Write-Host "  Found $($deployments.Count) total deployment(s)" -ForegroundColor Gray
             
             # Filter to deployments that overlap with our date range
+            # API returns timestamps in UTC - convert to local time for comparison
             $filtered = $deployments | Where-Object {
-                $launched = if ($_['launched']) { [DateTime]::Parse($_['launched']) } else { [DateTime]::MinValue }
-                $stopped = if ($_['stopped'] -and $_['stopped'] -ne '') { [DateTime]::Parse($_['stopped']) } else { [DateTime]::MaxValue }
+                $launched = if ($_['launched']) { 
+                    [DateTime]::SpecifyKind([DateTime]::Parse($_['launched']), [DateTimeKind]::Utc).ToLocalTime() 
+                } else { 
+                    [DateTime]::MinValue 
+                }
+                $stopped = if ($_['stopped'] -and $_['stopped'] -ne '') { 
+                    [DateTime]::SpecifyKind([DateTime]::Parse($_['stopped']), [DateTimeKind]::Utc).ToLocalTime() 
+                } else { 
+                    [DateTime]::MaxValue 
+                }
                 
                 # Deployment overlaps if: launched before EndDate AND stopped after StartDate
                 $launched -le $EndDate -and $stopped -ge $StartDate
@@ -1010,13 +1019,17 @@ try {
             }
         }
         
-        # Add/overwrite with new data
+        # Add/overwrite with new data (only count as updated if value actually changed)
         $updatedCount = 0
         $addedCount = 0
         foreach ($record in $sqlReadyData) {
             $dateKey = $record.Date  # Already in yyyy-MM-dd format
             if ($mergedHash.ContainsKey($dateKey)) {
-                $updatedCount++
+                # Only count as update if the P/L value actually changed
+                $existingPL = [double]$mergedHash[$dateKey].$plCol
+                if ($existingPL -ne $record.SumOrderValue) {
+                    $updatedCount++
+                }
             } else {
                 $addedCount++
             }
@@ -1026,17 +1039,23 @@ try {
             }
         }
         
-        # Sort by date and export
-        $mergedData = $mergedHash.Values | ForEach-Object {
-            [PSCustomObject]$_
-        } | Sort-Object { [DateTime]::Parse($_.$dateCol) }
-        
-        $mergedData | Export-Csv -Path $MergeData -NoTypeInformation -UseQuotes Never -Force
-        
-        Write-Host "  Records added: $addedCount" -ForegroundColor Green
-        Write-Host "  Records updated: $updatedCount" -ForegroundColor Yellow
-        Write-Host "  Total records: $($mergedData.Count)" -ForegroundColor White
-        Write-Host "  Saved to: $MergeData" -ForegroundColor Green
+        # Only write file if there are actual changes
+        if ($addedCount -gt 0 -or $updatedCount -gt 0) {
+            # Sort by date and export
+            $mergedData = $mergedHash.Values | ForEach-Object {
+                [PSCustomObject]$_
+            } | Sort-Object { [DateTime]::Parse($_.$dateCol) }
+            
+            $mergedData | Export-Csv -Path $MergeData -NoTypeInformation -UseQuotes Never -Force
+            
+            Write-Host "  Records added: $addedCount" -ForegroundColor Green
+            Write-Host "  Records updated: $updatedCount" -ForegroundColor Yellow
+            Write-Host "  Total records: $($mergedData.Count)" -ForegroundColor White
+            Write-Host "  Saved to: $MergeData" -ForegroundColor Green
+        }
+        else {
+            Write-Host "  No changes detected - file unchanged" -ForegroundColor Gray
+        }
     }
     
     # Return data object (can be piped to SQL insertion script)
