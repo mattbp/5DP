@@ -2,7 +2,7 @@ name: Update QC Orders
 
 on:
   schedule:
-    - cron: '*/30 18-21 * * *'  # Every 30 min, 10AM-1PM PST
+    - cron: '10 21 * * *'  # 1:10 PM PST (UTC-8)
   workflow_dispatch:        # Allows manual triggering from the GitHub UI
 
 jobs:
