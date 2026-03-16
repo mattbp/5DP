@@ -22,7 +22,7 @@ jobs:
           API_TOKEN:  ${{ secrets.API_TOKEN }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
         shell: pwsh
-        run: ./scripts/GetQCOrders.ps1
+        run: ./scripts/GetQCOrders.ps1 -MergeData "data.csv"
 
       - name: Commit and push updated data.csv
         shell: pwsh
