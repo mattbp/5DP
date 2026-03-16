@@ -82,7 +82,7 @@
   <div class="section-label">Monthly P&amp;L breakdown</div>
   <div class="monthly-wrap"><canvas id="monthlyChart"></canvas></div>
 
-  <p class="disclaimer">Underlying portfolio invested 100% at the 4% risk free rate.</p>
+  <p class="disclaimer" id="disclaimer"></p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -92,73 +92,64 @@ const START_BAL = 442428.22;
 const RF_DAILY  = 0.04 / 365.25;
 
 function parseDate(s) {
-  // handles both M/D/YYYY and YYYY-MM-DD
-  if (s.includes('-')) {
-    const [y, m, d] = s.split('-');
-    return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
-  }
-  const [m, d, y] = s.split('/');
-  return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+  if (s.includes('-')) { const [y,m,d]=s.split('-'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d)); }
+  const [m,d,y]=s.split('/'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d));
 }
 
 function toDisplayDate(s) {
-  // normalise to M/D/YYYY for display
   const dt = parseDate(s);
   return `${dt.getMonth()+1}/${dt.getDate()}/${dt.getFullYear()}`;
 }
 
 async function loadCSV() {
-  const resp = await fetch(CSV_URL + '?t=' + Date.now()); // cache-bust
+  const resp = await fetch(CSV_URL + '?t=' + Date.now());
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+  const lastModified = resp.headers.get('Last-Modified');
+  let dataAsOf = 'unknown';
+  if (lastModified) {
+    dataAsOf = new Date(lastModified).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    });
+  }
+
   const text = await resp.text();
-  const rows = text.trim().split('\n').slice(1); // skip header
-  return rows
+  const rawPL = text.trim().split('\n').slice(1)
     .filter(r => r.trim())
     .map(row => {
       const [date, pl] = row.split(',');
-      return [toDisplayDate(date.trim().replace(/"/g, '')), parseFloat(pl.trim().replace(/"/g, ''))];
+      return [toDisplayDate(date.trim().replace(/"/g,'')), parseFloat(pl.trim().replace(/"/g,''))];
     });
+
+  return { rawPL, dataAsOf };
 }
 
-function buildDashboard(rawPL) {
-  // Build raw with cumulative balance
+function buildDashboard(rawPL, dataAsOf) {
   let bal = START_BAL;
-  const raw = rawPL.map(([d, pl]) => {
-    bal = Math.round((bal + pl) * 100) / 100;
-    return { d, pl, bal, w: pl >= 0 };
+  const raw = rawPL.map(([d,pl]) => { bal=Math.round((bal+pl)*100)/100; return {d,pl,bal,w:pl>=0}; });
+
+  const dailyInterest = raw.map((r,i) => {
+    if (i===0) return 0;
+    const gap=(parseDate(r.d)-parseDate(raw[i-1].d))/86400000;
+    return raw[i-1].bal*RF_DAILY*gap;
   });
+  let cumInt=0;
+  const adjBals = raw.map((r,i) => { cumInt+=dailyInterest[i]; return Math.round((r.bal+cumInt)*100)/100; });
 
-  // Interest-adjusted balances
-  const dailyInterest = raw.map((r, i) => {
-    if (i === 0) return 0;
-    const gap = (parseDate(r.d) - parseDate(raw[i-1].d)) / 86400000;
-    return raw[i-1].bal * RF_DAILY * gap;
-  });
-  let cumInt = 0;
-  const adjBals = raw.map((r, i) => {
-    cumInt += dailyInterest[i];
-    return Math.round((r.bal + cumInt) * 100) / 100;
-  });
+  const n=raw.length, wins=raw.filter(r=>r.w).length, losses=n-wins;
+  const winRate=(wins/n*100).toFixed(1);
+  const netPremium=Math.round(raw.reduce((s,r)=>s+r.pl,0));
+  const netInterest=Math.round(dailyInterest.reduce((s,v)=>s+v,0));
+  const years=(parseDate(raw[n-1].d)-parseDate(raw[0].d))/(365.25*86400000);
+  const cagrTotal   =((adjBals[n-1]/START_BAL)**(1/years)-1)*100;
+  const cagrPremium =(((START_BAL+netPremium)/START_BAL)**(1/years)-1)*100;
+  const cagrInterest=(((START_BAL+netInterest)/START_BAL)**(1/years)-1)*100;
+  const pctR=raw.map(r=>r.pl/START_BAL), meanR=pctR.reduce((s,v)=>s+v,0)/n;
+  const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
+  const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
 
-  const n = raw.length;
-  const wins = raw.filter(r => r.w).length;
-  const losses = n - wins;
-  const winRate = (wins / n * 100).toFixed(1);
-  const netPremium = Math.round(raw.reduce((s, r) => s + r.pl, 0));
-  const netInterest = Math.round(dailyInterest.reduce((s, v) => s + v, 0));
-  const years = (parseDate(raw[n-1].d) - parseDate(raw[0].d)) / (365.25 * 86400000);
-
-  const cagrTotal    = ((adjBals[n-1] / START_BAL) ** (1/years) - 1) * 100;
-  const cagrPremium  = (((START_BAL + netPremium) / START_BAL) ** (1/years) - 1) * 100;
-  const cagrInterest = (((START_BAL + netInterest) / START_BAL) ** (1/years) - 1) * 100;
-
-  const pctR  = raw.map(r => r.pl / START_BAL);
-  const meanR = pctR.reduce((s,v) => s+v, 0) / n;
-  const stdR  = Math.sqrt(pctR.reduce((s,v) => s+(v-meanR)**2, 0) / (n-1));
-  const sharpe = ((meanR - 0.04/252) / stdR * Math.sqrt(252)).toFixed(2);
-
-  // Metric cards
-  document.getElementById('metricGrid').innerHTML = `
+  document.getElementById('metricGrid').innerHTML=`
     <div class="metric">
       <div class="metric-label">CAGR</div>
       <div class="metric-value info">${cagrTotal.toFixed(2)}%</div>
@@ -176,31 +167,27 @@ function buildDashboard(rawPL) {
       <div class="metric-sub">vs 4.0% risk-free</div>
     </div>`;
 
-  // Drawdowns
-  let runPeak = adjBals[0], runPeakIdx = 0;
-  const ddPeriods = [];
-  let inDD = false, peakIdx = 0, troughIdx = 0, troughVal = Infinity;
-  for (let i = 0; i < n; i++) {
-    if (adjBals[i] >= runPeak) { runPeak = adjBals[i]; runPeakIdx = i; }
-    if (adjBals[i] < runPeak) {
-      if (!inDD) { inDD = true; peakIdx = runPeakIdx; troughIdx = i; troughVal = adjBals[i]; }
-      else if (adjBals[i] < troughVal) { troughVal = adjBals[i]; troughIdx = i; }
-    } else if (inDD) {
-      ddPeriods.push({ peakIdx, troughIdx, recoveryIdx: i,
-        amount: Math.round(adjBals[peakIdx] - troughVal),
-        days: Math.round((parseDate(raw[i].d) - parseDate(raw[peakIdx].d)) / 86400000) });
-      inDD = false; troughVal = Infinity;
+  document.getElementById('disclaimer').textContent =
+    `Underlying portfolio invested 100% at the 4% risk free rate. Above data is as of ${dataAsOf}.`;
+
+  let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
+  for(let i=0;i<n;i++){
+    if(adjBals[i]>=runPeak){runPeak=adjBals[i];runPeakIdx=i;}
+    if(adjBals[i]<runPeak){
+      if(!inDD){inDD=true;peakIdx=runPeakIdx;troughIdx=i;troughVal=adjBals[i];}
+      else if(adjBals[i]<troughVal){troughVal=adjBals[i];troughIdx=i;}
+    } else if(inDD){
+      ddPeriods.push({peakIdx,troughIdx,recoveryIdx:i,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[i].d)-parseDate(raw[peakIdx].d))/86400000)});
+      inDD=false;troughVal=Infinity;
     }
   }
-  if (inDD) ddPeriods.push({ peakIdx, troughIdx, recoveryIdx: n-1,
-    amount: Math.round(adjBals[peakIdx] - troughVal),
-    days: Math.round((parseDate(raw[n-1].d) - parseDate(raw[peakIdx].d)) / 86400000) });
-  ddPeriods.sort((a,b) => b.amount - a.amount);
-  const top3 = ddPeriods.slice(0,3);
+  if(inDD) ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
+  ddPeriods.sort((a,b)=>b.amount-a.amount);
+  const top3=ddPeriods.slice(0,3);
 
-  const fmtDate = s => parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const ddOp = ['0.9','0.6','0.4'];
-  document.getElementById('ddBody').innerHTML = top3.map((dd,i) => `
+  const fmtDate=s=>parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const ddOp=['0.9','0.6','0.4'];
+  document.getElementById('ddBody').innerHTML=top3.map((dd,i)=>`
     <tr>
       <td><span class="badge" style="background:rgba(226,75,74,${ddOp[i]});">${i+1}</span></td>
       <td>${fmtDate(raw[dd.peakIdx].d)}</td><td>${fmtDate(raw[dd.troughIdx].d)}</td><td>${fmtDate(raw[dd.recoveryIdx].d)}</td>
@@ -208,133 +195,68 @@ function buildDashboard(rawPL) {
       <td>${dd.days} days</td>
     </tr>`).join('');
 
-  // Charts
-  const labels = raw.map(r => r.d);
-  const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const gridColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
-  const textColor = dark ? '#9c9a92' : '#73726c';
-  const ddStyles = [{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
+  const labels=raw.map(r=>r.d);
+  const dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)';
+  const textColor=dark?'#9c9a92':'#73726c';
+  const ddStyles=[{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
 
-  const drawdownPlugin = {
-    id:'drawdownBrackets',
-    afterDraw(chart) {
-      const { ctx, chartArea, scales } = chart;
-      if (!chartArea) return;
-      top3.forEach((dd, ri) => {
-        const x1=scales.x.getPixelForValue(dd.peakIdx), x2=scales.x.getPixelForValue(dd.recoveryIdx);
-        const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]), topY=baseY-12;
-        const s=ddStyles[ri];
-        ctx.save();
-        ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
-        ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
-        ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
-        ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
-        ctx.restore();
-      });
-    }
-  };
+  const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
+    const{ctx,chartArea,scales}=chart; if(!chartArea) return;
+    top3.forEach((dd,ri)=>{
+      const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
+      const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]),topY=baseY-12;
+      const s=ddStyles[ri];
+      ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
+      ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
+      ctx.restore();
+    });
+  }};
 
-  new Chart(document.getElementById('mainChart').getContext('2d'), {
-    data:{ labels, datasets:[{ type:'line', label:'Account balance', data:adjBals,
-      borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.08)',
-      fill:true, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.3 }] },
-    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:24}},
-      interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
-          borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:10,
-          callbacks:{label:ctx=>' Account balance: $'+Math.round(ctx.parsed.y).toLocaleString()} } },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}
-      }
-    }, plugins:[drawdownPlugin]
+  new Chart(document.getElementById('mainChart').getContext('2d'),{
+    data:{labels,datasets:[{type:'line',label:'Account balance',data:adjBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{label:ctx=>' Account balance: $'+Math.round(ctx.parsed.y).toLocaleString()}}},
+      scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
+    },plugins:[drawdownPlugin]
   });
 
-  new Chart(document.getElementById('plChart').getContext('2d'), {
-    data:{ labels, datasets:[{ type:'bar', label:'Daily P&L', data:raw.map(r=>r.pl),
-      backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'), borderRadius:2, barPercentage:0.8 }] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
-          borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:8,
-          callbacks:{label:ctx=>{ const v=ctx.parsed.y; return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString(); }} } },
-      scales:{
-        x:{ticks:{display:false},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}
-      }
-    }
+  new Chart(document.getElementById('plChart').getContext('2d'),{
+    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();}}}},
+      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 
-  // Monthly breakdown
-  const allMonths = [...new Set(raw.map(r => {
-    const dt = parseDate(r.d);
-    return `${dt.getMonth()+1}/${dt.getFullYear()}`;
-  }))];
+  const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
+  const filteredMonths=allMonths.filter(m=>{const[mo,yr]=m.split('/');return!(mo==='8'&&yr==='2025');});
+  const monthLabels=filteredMonths.map(m=>{const[mo,yr]=m.split('/');return new Date(parseInt(yr),parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});});
+  const mData={};
+  filteredMonths.forEach(m=>mData[m]={pls:[],wins:0,losses:0,interest:0});
+  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(r.pl);mData[key].interest+=dailyInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
+  const mPremium=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
+  const mInterest=filteredMonths.map(k=>Math.round(mData[k].interest));
+  const mTotals=filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
+  const mWR=filteredMonths.map(k=>{const d=mData[k];return Math.round(d.wins/(d.wins+d.losses)*100);});
+  const mBest=filteredMonths.map(k=>Math.round(Math.max(...mData[k].pls)));
+  const mWorst=filteredMonths.map(k=>Math.round(Math.min(...mData[k].pls)));
+  const mAvg=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
+  const mColors=mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
 
-  const monthLabels = allMonths.map(m => {
-    const [mo, yr] = m.split('/');
-    const dt = new Date(parseInt(yr), parseInt(mo)-1, 1);
-    return dt.toLocaleDateString('en-US',{month:'short',year:'2-digit'}).replace(' ', ' \'');
-  }).filter((_,i) => {
-    // exclude Aug 2025 (single day, too small)
-    const [mo, yr] = allMonths[i].split('/');
-    return !(mo === '8' && yr === '2025');
-  });
-
-  const filteredMonths = allMonths.filter(m => {
-    const [mo, yr] = m.split('/');
-    return !(mo === '8' && yr === '2025');
-  });
-
-  const mData = {};
-  filteredMonths.forEach(m => mData[m] = {pls:[],wins:0,losses:0,interest:0});
-  raw.forEach((r,i) => {
-    const dt = parseDate(r.d);
-    const key = `${dt.getMonth()+1}/${dt.getFullYear()}`;
-    if (!mData[key]) return;
-    mData[key].pls.push(r.pl);
-    mData[key].interest += dailyInterest[i];
-    r.w ? mData[key].wins++ : mData[key].losses++;
-  });
-
-  const mPremium  = filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
-  const mInterest = filteredMonths.map(k=>Math.round(mData[k].interest));
-  const mTotals   = filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
-  const mWR       = filteredMonths.map(k=>{const d=mData[k];return Math.round(d.wins/(d.wins+d.losses)*100);});
-  const mBest     = filteredMonths.map(k=>Math.round(Math.max(...mData[k].pls)));
-  const mWorst    = filteredMonths.map(k=>Math.round(Math.min(...mData[k].pls)));
-  const mAvg      = filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
-  const mColors   = mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
-
-  new Chart(document.getElementById('monthlyChart').getContext('2d'), {
-    type:'bar',
-    data:{ labels:monthLabels, datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:dark?'#2c2c2a':'#fff', borderColor:dark?'#444441':'#d3d1c7',
-          borderWidth:1, titleColor:textColor, bodyColor:dark?'#c2c0b6':'#3d3d3a', padding:10,
-          callbacks:{label:ctx=>{ const i=ctx.dataIndex,v=ctx.parsed.y;
-            return [' Total P&L: $'+Math.abs(v).toLocaleString(),
-                    ' Net interest: $'+mInterest[i].toLocaleString(),
-                    ' Win rate: '+mWR[i]+'%',
-                    ' Best day: +$'+mBest[i].toLocaleString(),
-                    ' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString(),
-                    ' Avg day: '+(mAvg[i]>=0?'+':'')+'$'+mAvg[i].toLocaleString()]; }} } },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}
-      }
-    }
+  new Chart(document.getElementById('monthlyChart').getContext('2d'),{
+    type:'bar',data:{labels:monthLabels,datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,
+      callbacks:{label:ctx=>{const i=ctx.dataIndex,v=ctx.parsed.y;return[' Total P&L: $'+Math.abs(v).toLocaleString(),' Net interest: $'+mInterest[i].toLocaleString(),' Win rate: '+mWR[i]+'%',' Best day: +$'+mBest[i].toLocaleString(),' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString(),' Avg day: '+(mAvg[i]>=0?'+':'')+'$'+mAvg[i].toLocaleString()];}}}},
+      scales:{x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 }
 
-// Boot
 loadCSV()
-  .then(rawPL => {
+  .then(({ rawPL, dataAsOf }) => {
     document.getElementById('status').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    buildDashboard(rawPL);
+    buildDashboard(rawPL, dataAsOf);
   })
   .catch(err => {
     document.getElementById('status').className = 'error';
