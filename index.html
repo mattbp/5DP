@@ -91,6 +91,11 @@ const CSV_URL   = 'https://mattbp.github.io/5DP/data.csv';
 const START_BAL = 442428.22;
 const RF_DAILY  = 0.04 / 365.25;
 
+function fmt(v) {
+  const abs = Math.abs(v).toLocaleString();
+  return v < 0 ? `($${abs})` : `$${abs}`;
+}
+
 function parseDate(s) {
   if (s.includes('-')) { const [y,m,d]=s.split('-'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d)); }
   const [m,d,y]=s.split('/'); return new Date(parseInt(y),parseInt(m)-1,parseInt(d));
@@ -247,7 +252,7 @@ function buildDashboard(rawPL, dataAsOf) {
   new Chart(document.getElementById('monthlyChart').getContext('2d'),{
     type:'bar',data:{labels:monthLabels,datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,
-      callbacks:{label:ctx=>{const i=ctx.dataIndex,v=ctx.parsed.y;return[' Total P&L: $'+Math.abs(v).toLocaleString(),' Net interest: $'+mInterest[i].toLocaleString(),' Win rate: '+mWR[i]+'%',' Best day: +$'+mBest[i].toLocaleString(),' Worst day: -$'+Math.abs(mWorst[i]).toLocaleString(),' Avg day: '+(mAvg[i]>=0?'+':'')+'$'+mAvg[i].toLocaleString()];}}}},
+      callbacks:{label:ctx=>{const i=ctx.dataIndex;return[` Option premium: ${fmt(mPremium[i])}`,` Win rate: ${mWR[i]}%`,` Avg day: ${fmt(mAvg[i])}`,` Worst day: ${fmt(mWorst[i])}`,` Best day: ${fmt(mBest[i])}`];}}}},
       scales:{x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 }
