@@ -11,7 +11,7 @@
   h1 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #1a1a18; }
   .loading { font-size: 13px; color: #888780; padding: 40px 0; text-align: center; }
   .error   { font-size: 13px; color: #791f1f; padding: 40px 0; text-align: center; }
-  .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
   .metric { background: #f1efe8; border-radius: 8px; padding: 14px 16px; }
   .metric-label { font-size: 12px; color: #73726c; margin-bottom: 4px; }
   .metric-value { font-size: 20px; font-weight: 500; color: #1a1a18; }
@@ -154,6 +154,17 @@ function buildDashboard(rawPL, dataAsOf) {
   const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
   const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
 
+  const grossWins = raw.reduce((s,r)=>r.pl>0?s+r.pl:s, 0);
+  const grossLoss = raw.reduce((s,r)=>r.pl<0?s+Math.abs(r.pl):s, 0);
+  const profitFactor = (grossWins/grossLoss).toFixed(2);
+
+  let peak=adjBals[0], maxDD=0, maxDDpct=0;
+  for(let i=1;i<n;i++){
+    if(adjBals[i]>peak) peak=adjBals[i];
+    const dd=peak-adjBals[i];
+    if(dd>maxDD){ maxDD=dd; maxDDpct=dd/peak*100; }
+  }
+
   document.getElementById('metricGrid').innerHTML=`
     <div class="metric">
       <div class="metric-label">CAGR</div>
@@ -170,6 +181,16 @@ function buildDashboard(rawPL, dataAsOf) {
       <div class="metric-label">Sharpe ratio</div>
       <div class="metric-value success">${sharpe}</div>
       <div class="metric-sub">vs 4.0% risk-free</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Profit factor</div>
+      <div class="metric-value success">${profitFactor}</div>
+      <div class="metric-sub">$${Math.round(grossWins).toLocaleString()} wins / $${Math.round(grossLoss).toLocaleString()} losses</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Max drawdown</div>
+      <div class="metric-value" style="color:#a32d2d;">($${Math.round(maxDD).toLocaleString()})</div>
+      <div class="metric-sub">${maxDDpct.toFixed(1)}% from peak</div>
     </div>`;
 
   document.getElementById('disclaimer').textContent =
