@@ -984,7 +984,7 @@ try {
     # Export to CSV if requested
     if ($ExportCsv) {
         $csvData = $sqlReadyData | Select-Object Date, @{Name='ProfitLoss'; Expression={$_.SumOrderValue}}
-        $csvData | Export-Csv -Path $ExportCsv -NoTypeInformation -Force
+        $csvData | Export-Csv -Path $ExportCsv -NoTypeInformation -UseQuotes Never -Force
         Write-Host "`nExported to CSV: $ExportCsv" -ForegroundColor Green
     }
     
@@ -1031,7 +1031,7 @@ try {
             [PSCustomObject]$_
         } | Sort-Object { [DateTime]::Parse($_.$dateCol) }
         
-        $mergedData | Export-Csv -Path $MergeData -NoTypeInformation -Force
+        $mergedData | Export-Csv -Path $MergeData -NoTypeInformation -UseQuotes Never -Force
         
         Write-Host "  Records added: $addedCount" -ForegroundColor Green
         Write-Host "  Records updated: $updatedCount" -ForegroundColor Yellow
