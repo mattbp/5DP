@@ -18,6 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Wait for QC to settle
+        if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
+        shell: pwsh
+        run: |
+          Write-Host "Order-fill trigger detected, waiting 5 minutes for QC to settle..."
+          Start-Sleep -Seconds 300
+          
       - name: Run GetQCOrders script
         env:
           USER_ID:    ${{ secrets.USER_ID }}
