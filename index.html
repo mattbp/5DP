@@ -195,10 +195,9 @@ function buildDashboard(rawPL, dataAsOf) {
 
   const u='mattbp', d='gmail.com';
   document.getElementById('disclaimer').innerHTML =
-    `Results assume underlying portfolio invested 100% at the 4% risk free rate and as of ${dataAsOf}.<br>${u}@${d}`.replace(
-      `${u}@${d}`,
-      `<a href="mailto:${u}@${d}" style="color:inherit;">${u}@${d}</a>`
-    );
+    `Results assume underlying portfolio invested 100% at the 4% risk free rate.<br>` +
+    `Results current as of ${dataAsOf}.<br>` +
+    `<a href="mailto:${u}@${d}" style="color:inherit;">${u}@${d}</a>`;
 
   let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
   for(let i=0;i<n;i++){
