@@ -22,8 +22,8 @@ jobs:
         if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
         shell: pwsh
         run: |
-          Write-Host "Order-fill trigger detected, waiting 5 minutes for QC to settle..."
-          Start-Sleep -Seconds 300
+          Write-Host "Order-fill trigger detected, waiting 10 minutes for QC to settle..."
+          Start-Sleep -Seconds 600
           
       - name: Run GetQCOrders script
         env:
