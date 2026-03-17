@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5DP Automated Option Premium Algo — Live Performance</title>
+<title>Automated Option Premium Algo — Live Performance</title>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-8HKEKVB8PM"></script><script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-8HKEKVB8PM');</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +57,7 @@
 </head>
 <body>
 
-<h1>5DP Automated Option Premium Algo — Live Performance</h1>
+<h1>Automated Option Premium Algo — Live Performance</h1>
 <div id="status" class="loading">Loading data...</div>
 
 <div id="dashboard">
@@ -193,8 +193,12 @@ function buildDashboard(rawPL, dataAsOf) {
       <div class="metric-sub">vs 4.0% risk-free</div>
     </div>`;
 
-  document.getElementById('disclaimer').textContent =
-    `Underlying portfolio invested 100% at the 4% risk free rate. Above data is as of ${dataAsOf}.`;
+  const u='mattbp', d='gmail.com';
+  document.getElementById('disclaimer').innerHTML =
+    `Results assume underlying portfolio invested 100% at the 4% risk free rate and as of ${dataAsOf}.<br>${u}@${d}`.replace(
+      `${u}@${d}`,
+      `<a href="mailto:${u}@${d}" style="color:inherit;">${u}@${d}</a>`
+    );
 
   let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
   for(let i=0;i<n;i++){
