@@ -1,4 +1,4 @@
-name: Update QC Orders
+name: Update Trading Data
 
 on:
   repository_dispatch:
@@ -18,20 +18,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Wait for QC to settle
-        if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
-        shell: pwsh
-        run: |
-          Write-Host "Order-fill trigger detected, waiting 10 minutes for QC to settle..."
-          Start-Sleep -Seconds 600
+      # unnecessarily with swap to GetIBKROrders
+      #- name: Wait for QC to settle
+      #  if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
+      #  shell: pwsh
+      #  run: |
+      #    Write-Host "Order-fill trigger detected, waiting 10 minutes for QC to settle..."
+      #    Start-Sleep -Seconds 600
           
-      - name: Run GetQCOrders script
+      - name: Run GetIBKROrders script
         env:
-          USER_ID:    ${{ secrets.USER_ID }}
-          API_TOKEN:  ${{ secrets.API_TOKEN }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          IBKR_TOKEN:    ${{ secrets.IBKR_TOKEN }}
+          IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         shell: pwsh
-        run: ./scripts/GetQCOrders.ps1 -MergeData "data.csv"
+        run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv"
 
       - name: Commit and push updated data.csv
         shell: pwsh
