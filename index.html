@@ -63,12 +63,14 @@
 <div id="dashboard">
   <div class="metric-grid" id="metricGrid"></div>
 
-  <div class="legend">
-    <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
-    <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
-    <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
-    <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
-    <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
+  <div class="legend" style="justify-content:space-between;">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+      <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
+      <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
+      <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
+    </div>
     <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="spyToggle" style="margin:0 4px 0 0;cursor:pointer;">Compare Algo to SPY Buy &amp; Hold</label>
   </div>
 
@@ -369,7 +371,10 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const mainChart = new Chart(document.getElementById('mainChart').getContext('2d'),{
     data:{labels,datasets:mainDatasets},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{label:ctx=>{const i=ctx.dataIndex;if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}return[` Balance: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(raw[i].pl)}`];}}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{
+        label:ctx=>{const i=ctx.dataIndex;if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}return[` Balance: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(raw[i].pl)}`];},
+        afterBody:items=>{if(!spyBals) return '';const i=items[0]?.dataIndex;if(i==null) return '';const spyDs=mainChart.data.datasets[1];if(!spyDs||spyDs.hidden) return '';const spyVal=spyBals[i];if(spyVal==null) return '';const diff=((adjBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';return ` Algo vs SPY: ${sign}${diff}%`;}
+      }}},
       scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
     },plugins:[drawdownPlugin, winStreakPlugin]
   });
