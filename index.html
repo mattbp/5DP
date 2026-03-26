@@ -170,7 +170,7 @@ function buildDashboard(rawPL, dataAsOf) {
   const cagrTotal   =((adjBals[n-1]/START_BAL)**(1/years)-1)*100;
   const cagrPremium =(((START_BAL+netPremium)/START_BAL)**(1/years)-1)*100;
   const cagrInterest=(((START_BAL+netInterest)/START_BAL)**(1/years)-1)*100;
-  const pctR=raw.map(r=>r.pl/START_BAL), meanR=pctR.reduce((s,v)=>s+v,0)/n;
+  const pctR=raw.map((r,i)=>r.pl/(i===0?START_BAL:adjBals[i-1])), meanR=pctR.reduce((s,v)=>s+v,0)/n;
   const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
   const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
 
