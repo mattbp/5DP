@@ -68,6 +68,7 @@
     <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
     <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
     <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
+    <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
   </div>
 
   <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
@@ -128,6 +129,25 @@ async function loadCSV() {
     });
 
   return { rawPL, dataAsOf };
+}
+
+/* ── Find top N win streaks from raw data ── */
+function findWinStreaks(raw, topN) {
+  const streaks = [];
+  let start = null;
+  for (let i = 0; i < raw.length; i++) {
+    if (raw[i].w) {
+      if (start === null) start = i;
+    } else {
+      if (start !== null) {
+        streaks.push({ startIdx: start, endIdx: i - 1, len: i - start });
+        start = null;
+      }
+    }
+  }
+  if (start !== null) streaks.push({ startIdx: start, endIdx: raw.length - 1, len: raw.length - start });
+  streaks.sort((a, b) => b.len - a.len);
+  return streaks.slice(0, topN);
 }
 
 function buildDashboard(rawPL, dataAsOf) {
@@ -199,6 +219,7 @@ function buildDashboard(rawPL, dataAsOf) {
     `Results current as of ${dataAsOf}.<br>` +
     `<a href="mailto:${u}@${d}" style="color:inherit;">${u}@${d}</a>`;
 
+  /* ── Drawdown periods ── */
   let runPeak=adjBals[0],runPeakIdx=0,ddPeriods=[],inDD=false,peakIdx=0,troughIdx=0,troughVal=Infinity;
   for(let i=0;i<n;i++){
     if(adjBals[i]>=runPeak){runPeak=adjBals[i];runPeakIdx=i;}
@@ -224,12 +245,16 @@ function buildDashboard(rawPL, dataAsOf) {
       <td>${dd.days} days</td>
     </tr>`).join('');
 
+  /* ── Win streaks ── */
+  const topStreaks = findWinStreaks(raw, 3);
+
   const labels=raw.map(r=>r.d);
   const dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
   const gridColor=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)';
   const textColor=dark?'#9c9a92':'#73726c';
   const ddStyles=[{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
 
+  /* ── Drawdown bracket plugin (existing) ── */
   const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
     const{ctx,chartArea,scales}=chart; if(!chartArea) return;
     top3.forEach((dd,ri)=>{
@@ -244,12 +269,73 @@ function buildDashboard(rawPL, dataAsOf) {
     });
   }};
 
+  /* ── Win streak angled bracket plugin ── */
+  const wsColors = [
+    { stroke: 'rgba(29,158,117,1)',    fill: 'rgba(29,158,117,0.06)', lw: 2   },
+    { stroke: 'rgba(29,158,117,0.65)', fill: 'rgba(29,158,117,0.04)', lw: 1.5 },
+    { stroke: 'rgba(29,158,117,0.45)', fill: 'rgba(29,158,117,0.03)', lw: 1.2 },
+  ];
+
+  const winStreakPlugin = { id: 'winStreakBrackets', afterDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    if (!chartArea) return;
+
+    topStreaks.forEach((streak, ri) => {
+      const si = streak.startIdx, ei = streak.endIdx;
+      const x1 = scales.x.getPixelForValue(si);
+      const x2 = scales.x.getPixelForValue(ei);
+      const y1 = scales.y.getPixelForValue(adjBals[si]);
+      const y2 = scales.y.getPixelForValue(adjBals[ei]);
+
+      // Offset the bracket below the line (since equity goes up, y2 < y1 in pixel coords)
+      const offsetPx = 18 + ri * 6;  // stagger offsets so they don't overlap
+      const bY1 = y1 + offsetPx;
+      const bY2 = y2 + offsetPx;
+
+      const s = wsColors[ri];
+      const tickLen = 8;  // vertical tick at each end
+
+      ctx.save();
+      ctx.strokeStyle = s.stroke;
+      ctx.lineWidth = s.lw;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Draw angled bracket: tick down at start, angled line, tick down at end
+      ctx.beginPath();
+      ctx.moveTo(x1, bY1 - tickLen);  // top of left tick
+      ctx.lineTo(x1, bY1);            // bottom of left tick
+      ctx.lineTo(x2, bY2);            // angled line to right end
+      ctx.lineTo(x2, bY2 - tickLen);  // tick up at right end
+      ctx.stroke();
+
+      // Label: centered along the angled line
+      const midX = (x1 + x2) / 2;
+      const midY = (bY1 + bY2) / 2;
+      const totalPL = raw.slice(si, ei + 1).reduce((sum, r) => sum + r.pl, 0);
+      const label = `${streak.len}W  +$${Math.round(totalPL).toLocaleString()}`;
+
+      // Rotate text to match the angle of the line
+      const angle = Math.atan2(bY2 - bY1, x2 - x1);
+
+      ctx.fillStyle = s.stroke;
+      ctx.font = '600 10px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.translate(midX, midY);
+      ctx.rotate(angle);
+      ctx.fillText(label, 0, 4);
+
+      ctx.restore();
+    });
+  }};
+
   new Chart(document.getElementById('mainChart').getContext('2d'),{
     data:{labels,datasets:[{type:'line',label:'Account balance',data:adjBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{label:ctx=>{const i=ctx.dataIndex;return[` Balance: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(raw[i].pl)}`];}}}},
       scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
-    },plugins:[drawdownPlugin]
+    },plugins:[drawdownPlugin, winStreakPlugin]
   });
 
   new Chart(document.getElementById('plChart').getContext('2d'),{
