@@ -259,10 +259,18 @@ function buildDashboard(rawPL, dataAsOf) {
     const{ctx,chartArea,scales}=chart; if(!chartArea) return;
     top3.forEach((dd,ri)=>{
       const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
-      const baseY=scales.y.getPixelForValue(adjBals[dd.peakIdx]),topY=baseY-12;
+      const y1=scales.y.getPixelForValue(adjBals[dd.peakIdx]);
+      const y2=scales.y.getPixelForValue(adjBals[dd.recoveryIdx]);
+      const tickLen=14+ri*4;
+      const topY=Math.min(y1,y2)-tickLen; // horizontal bar above both points
       const s=ddStyles[ri];
       ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
-      ctx.beginPath(); ctx.moveTo(x1,baseY); ctx.lineTo(x1,topY); ctx.lineTo(x2,topY); ctx.lineTo(x2,baseY); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);     // touch equity line at peak
+      ctx.lineTo(x1,topY);   // tick up
+      ctx.lineTo(x2,topY);   // horizontal bar
+      ctx.lineTo(x2,y2);     // tick down to equity line at recovery
+      ctx.stroke();
       ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
       ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
       ctx.restore();
@@ -284,16 +292,12 @@ function buildDashboard(rawPL, dataAsOf) {
       const si = streak.startIdx, ei = streak.endIdx;
       const x1 = scales.x.getPixelForValue(si);
       const x2 = scales.x.getPixelForValue(ei);
+      // Start and end points sit exactly on the equity line
       const y1 = scales.y.getPixelForValue(adjBals[si]);
       const y2 = scales.y.getPixelForValue(adjBals[ei]);
 
-      // Offset the bracket below the line (since equity goes up, y2 < y1 in pixel coords)
-      const offsetPx = 18 + ri * 6;  // stagger offsets so they don't overlap
-      const bY1 = y1 + offsetPx;
-      const bY2 = y2 + offsetPx;
-
       const s = wsColors[ri];
-      const tickLen = 8;  // vertical tick at each end
+      const tickLen = 14 + ri * 4;  // vertical ticks extend downward, staggered
 
       ctx.save();
       ctx.strokeStyle = s.stroke;
@@ -301,22 +305,22 @@ function buildDashboard(rawPL, dataAsOf) {
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      // Draw angled bracket: tick down at start, angled line, tick down at end
+      // Draw angled bracket: start ON the equity line, tick down, angled line below, tick back up to equity line
       ctx.beginPath();
-      ctx.moveTo(x1, bY1 - tickLen);  // top of left tick
-      ctx.lineTo(x1, bY1);            // bottom of left tick
-      ctx.lineTo(x2, bY2);            // angled line to right end
-      ctx.lineTo(x2, bY2 - tickLen);  // tick up at right end
+      ctx.moveTo(x1, y1);                // touch equity line at start
+      ctx.lineTo(x1, y1 + tickLen);      // tick down
+      ctx.lineTo(x2, y2 + tickLen);      // angled line (parallel to equity slope)
+      ctx.lineTo(x2, y2);                // tick back up to equity line at end
       ctx.stroke();
 
-      // Label: centered along the angled line
+      // Label: centered along the angled lower line
       const midX = (x1 + x2) / 2;
-      const midY = (bY1 + bY2) / 2;
+      const midY = (y1 + tickLen + y2 + tickLen) / 2;
       const totalPL = raw.slice(si, ei + 1).reduce((sum, r) => sum + r.pl, 0);
       const label = `${streak.len}W  +$${Math.round(totalPL).toLocaleString()}`;
 
       // Rotate text to match the angle of the line
-      const angle = Math.atan2(bY2 - bY1, x2 - x1);
+      const angle = Math.atan2((y2 + tickLen) - (y1 + tickLen), x2 - x1);
 
       ctx.fillStyle = s.stroke;
       ctx.font = '600 10px -apple-system, sans-serif';
