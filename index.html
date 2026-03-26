@@ -175,8 +175,8 @@ function buildDashboard(rawPL, dataAsOf) {
   const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
 
   const rfDaily=0.04/252;
-  const downside=pctR.filter(r=>r<rfDaily).map(r=>r-rfDaily);
-  const downDev=downside.length>1?Math.sqrt(downside.reduce((s,v)=>s+v*v,0)/(downside.length-1)):0;
+  const downsideSq=pctR.map(r=>r<rfDaily?(r-rfDaily)**2:0);
+  const downDev=Math.sqrt(downsideSq.reduce((s,v)=>s+v,0)/n);
   const sortino=downDev>0?((meanR-rfDaily)/downDev*Math.sqrt(252)).toFixed(2):'N/A';
 
   const grossWins = raw.reduce((s,r)=>r.pl>0?s+r.pl:s, 0);
