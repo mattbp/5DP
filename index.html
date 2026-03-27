@@ -430,7 +430,7 @@ async function loadSPY() {
     for (const row of rows) {
       const cols = row.split(',');
       if (cols.length < 2) continue;
-      const dateStr = cols[0].trim().replace(/"/g, '');
+      const dateStr = cols[0].trim().replace(/"/g, '').split(' ')[0];
       const close = parseFloat(cols[1].trim().replace(/"/g, ''));
       if (isNaN(close)) continue;
       map[toDisplayDate(dateStr)] = close;
