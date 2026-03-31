@@ -92,7 +92,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const CSV_URL   = 'https://mattbp.github.io/5DP/data.csv';
-const SPY_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3zflNPgV3H2XIFVGDXXlCasJTEELCs0tBdY8wrGCNJAF_tBNXgDj_nzGx-6im2PZ7AjYaZNNaAONr/pub?output=csv';
+const SPY_URL   = 'https://mattbp.github.io/5DP/spy.csv';
 const START_BAL = 442428.22;
 const RF_DAILY  = 0.04 / 365.25;
 
@@ -268,7 +268,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const textColor=dark?'#9c9a92':'#73726c';
   const ddStyles=[{stroke:'rgba(226,75,74,1)',lw:2},{stroke:'rgba(226,75,74,0.65)',lw:1.5},{stroke:'rgba(226,75,74,0.45)',lw:1.2}];
 
-  /* ── Drawdown bracket plugin (existing) ── */
+  /* ── Drawdown bracket plugin ── */
   const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
     const{ctx,chartArea,scales}=chart; if(!chartArea) return;
     top3.forEach((dd,ri)=>{
@@ -276,14 +276,14 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
       const y1=scales.y.getPixelForValue(adjBals[dd.peakIdx]);
       const y2=scales.y.getPixelForValue(adjBals[dd.recoveryIdx]);
       const tickLen=14+ri*4;
-      const topY=Math.min(y1,y2)-tickLen; // horizontal bar above both points
+      const topY=Math.min(y1,y2)-tickLen;
       const s=ddStyles[ri];
       ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
       ctx.beginPath();
-      ctx.moveTo(x1,y1);     // touch equity line at peak
-      ctx.lineTo(x1,topY);   // tick up
-      ctx.lineTo(x2,topY);   // horizontal bar
-      ctx.lineTo(x2,y2);     // tick down to equity line at recovery
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x1,topY);
+      ctx.lineTo(x2,topY);
+      ctx.lineTo(x2,y2);
       ctx.stroke();
       ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
       ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
@@ -306,12 +306,11 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
       const si = streak.startIdx, ei = streak.endIdx;
       const x1 = scales.x.getPixelForValue(si);
       const x2 = scales.x.getPixelForValue(ei);
-      // Start and end points sit exactly on the equity line
       const y1 = scales.y.getPixelForValue(adjBals[si]);
       const y2 = scales.y.getPixelForValue(adjBals[ei]);
 
       const s = wsColors[ri];
-      const tickLen = 14 + ri * 4;  // vertical ticks extend downward, staggered
+      const tickLen = 14 + ri * 4;
 
       ctx.save();
       ctx.strokeStyle = s.stroke;
@@ -319,21 +318,18 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      // Draw angled bracket: start ON the equity line, tick down, angled line below, tick back up to equity line
       ctx.beginPath();
-      ctx.moveTo(x1, y1);                // touch equity line at start
-      ctx.lineTo(x1, y1 + tickLen);      // tick down
-      ctx.lineTo(x2, y2 + tickLen);      // angled line (parallel to equity slope)
-      ctx.lineTo(x2, y2);                // tick back up to equity line at end
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1, y1 + tickLen);
+      ctx.lineTo(x2, y2 + tickLen);
+      ctx.lineTo(x2, y2);
       ctx.stroke();
 
-      // Label: centered along the angled lower line
       const midX = (x1 + x2) / 2;
       const midY = (y1 + tickLen + y2 + tickLen) / 2;
       const totalPL = raw.slice(si, ei + 1).reduce((sum, r) => sum + r.pl, 0);
       const label = `${streak.len}W  +$${Math.round(totalPL).toLocaleString()}`;
 
-      // Rotate text to match the angle of the line
       const angle = Math.atan2((y2 + tickLen) - (y1 + tickLen), x2 - x1);
 
       ctx.fillStyle = s.stroke;
@@ -351,7 +347,6 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   /* ── SPY benchmark curve ── */
   let spyBals = null;
   if (spyData) {
-    // Find the SPY close on or just before the first algo trading date
     const firstDate = raw[0].d;
     const firstSPY = spyData[firstDate];
     if (firstSPY) {
@@ -422,7 +417,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
 async function loadSPY() {
   try {
-    const resp = await fetch(SPY_URL + '&t=' + Date.now());
+    const resp = await fetch(SPY_URL + '?t=' + Date.now());
     if (!resp.ok) return null;
     const text = await resp.text();
     const rows = text.trim().split('\n').slice(1).filter(r => r.trim());
