@@ -68,7 +68,7 @@
       <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Account balance</span>
       <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
       <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
-      <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Top 3 drawdowns</span>
+      <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Worst drawdown</span>
       <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
     </div>
     <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="spyToggle" style="margin:0 4px 0 0;cursor:pointer;">Compare Algo to SPY Buy &amp; Hold</label>
@@ -77,9 +77,9 @@
   <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
   <div class="pl-wrap"><canvas id="plChart"></canvas></div>
 
-  <div class="section-label">Top 3 drawdown periods</div>
+  <div class="section-label">Worst drawdown</div>
   <table class="dd-table">
-    <thead><tr><th></th><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr></thead>
+    <thead><tr><th>Peak date</th><th>Trough date</th><th>Recovery date</th><th>Max drawdown</th><th>Duration</th></tr></thead>
     <tbody id="ddBody"></tbody>
   </table>
 
@@ -247,17 +247,16 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   }
   if(inDD) ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,amount:Math.round(adjBals[peakIdx]-troughVal),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
   ddPeriods.sort((a,b)=>b.amount-a.amount);
-  const top3=ddPeriods.slice(0,3);
+  const top3=ddPeriods.slice(0,1);
 
   const fmtDate=s=>parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const ddOp=['0.9','0.6','0.4'];
-  document.getElementById('ddBody').innerHTML=top3.map((dd,i)=>`
+  const dd=top3[0];
+  document.getElementById('ddBody').innerHTML=dd?`
     <tr>
-      <td><span class="badge" style="background:rgba(226,75,74,${ddOp[i]});">${i+1}</span></td>
       <td>${fmtDate(raw[dd.peakIdx].d)}</td><td>${fmtDate(raw[dd.troughIdx].d)}</td><td>${fmtDate(raw[dd.recoveryIdx].d)}</td>
       <td class="dd-amt">-$${dd.amount.toLocaleString()} (-${(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)}%)</td>
       <td>${dd.days} days</td>
-    </tr>`).join('');
+    </tr>`:'';
 
   /* ── Win streaks ── */
   const topStreaks = findWinStreaks(raw, 3);
@@ -270,25 +269,23 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
   /* ── Drawdown bracket plugin ── */
   const drawdownPlugin={id:'drawdownBrackets',afterDraw(chart){
-    const{ctx,chartArea,scales}=chart; if(!chartArea) return;
-    top3.forEach((dd,ri)=>{
-      const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
-      const y1=scales.y.getPixelForValue(adjBals[dd.peakIdx]);
-      const y2=scales.y.getPixelForValue(adjBals[dd.recoveryIdx]);
-      const tickLen=14+ri*4;
-      const topY=Math.min(y1,y2)-tickLen;
-      const s=ddStyles[ri];
-      ctx.save(); ctx.strokeStyle=s.stroke; ctx.lineWidth=s.lw; ctx.lineCap='round'; ctx.lineJoin='round';
-      ctx.beginPath();
-      ctx.moveTo(x1,y1);
-      ctx.lineTo(x1,topY);
-      ctx.lineTo(x2,topY);
-      ctx.lineTo(x2,y2);
-      ctx.stroke();
-      ctx.fillStyle=s.stroke; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
-      ctx.restore();
-    });
+    const{ctx,chartArea,scales}=chart; if(!chartArea||!top3[0]) return;
+    const dd=top3[0];
+    const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
+    const y1=scales.y.getPixelForValue(adjBals[dd.peakIdx]);
+    const y2=scales.y.getPixelForValue(adjBals[dd.recoveryIdx]);
+    const tickLen=14;
+    const topY=Math.min(y1,y2)-tickLen;
+    ctx.save(); ctx.strokeStyle='rgba(226,75,74,1)'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1,topY);
+    ctx.lineTo(x2,topY);
+    ctx.lineTo(x2,y2);
+    ctx.stroke();
+    ctx.fillStyle='rgba(226,75,74,1)'; ctx.font='400 10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('-$'+dd.amount.toLocaleString()+' (-'+(dd.amount/adjBals[dd.peakIdx]*100).toFixed(1)+'%)  '+dd.days+'d',(x1+x2)/2,topY-4);
+    ctx.restore();
   }};
 
   /* ── Win streak angled bracket plugin ── */
