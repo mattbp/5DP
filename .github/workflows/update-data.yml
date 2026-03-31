@@ -1,23 +1,18 @@
 name: Update Trading Data
-
 on:
   repository_dispatch:
     types: [order-filled]
   schedule:
     - cron: '10 21 * * *'  # 1:10 PM PST (UTC-8)
   workflow_dispatch:        # Allows manual triggering from the GitHub UI
-
 jobs:
   update-data:
     runs-on: windows-latest
-
     permissions:
       contents: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Wait for Order to appear
         if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
         shell: pwsh
@@ -32,11 +27,16 @@ jobs:
         shell: pwsh
         run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv"
 
-      - name: Commit and push updated data.csv
+      - name: Update SPY data
+        shell: pwsh
+        run: |
+          ./scripts/GetMarketData.ps1 -Ticker "SPY" -OutputPath "spy.csv" -ApiKey "${{ secrets.ALPHA_VANTAGE_KEY }}"
+      
+      - name: Commit and push updated data
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.csv
-          git diff --staged --quiet || git commit -m "Auto-update data.csv [$(Get-Date -Format 'yyyy-MM-dd HH:mm')]"
+          git add data.csv spy.csv
+          git diff --staged --quiet || git commit -m "Auto-update data [$(Get-Date -Format 'yyyy-MM-dd HH:mm')]"
           git push
