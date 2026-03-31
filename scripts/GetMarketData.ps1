@@ -1,6 +1,5 @@
 # GetMarketData.ps1
 # Fetches daily close prices from Alpha Vantage and writes to CSV
-# If output file exists, reads the latest date and only fetches new data
 
 param(
     [string]$Ticker = "SPY",
@@ -20,7 +19,9 @@ if (Test-Path $OutputPath) {
         if ($cols.Length -ge 2) {
             try {
                 $d = Get-Date $cols[0] -ErrorAction Stop
-                $existingRows += $row
+                # Normalize existing rows to M/d/yyyy
+                $normalized = "$($d.Month)/$($d.Day)/$($d.Year),$($cols[1])"
+                $existingRows += $normalized
                 if ($null -eq $maxDate -or $d -gt $maxDate) { $maxDate = $d }
             } catch { continue }
         }
@@ -59,7 +60,8 @@ try {
             try {
                 $parsed = Get-Date $cols[0] -ErrorAction Stop
                 if ($parsed -gt $cutoff -and $parsed -le $cutoffEnd) {
-                    $newRows += "$($cols[0]),$($cols[4])"
+                    $dateFormatted = "$($parsed.Month)/$($parsed.Day)/$($parsed.Year)"
+                    $newRows += "$dateFormatted,$($cols[4])"
                 }
             } catch { continue }
         }
