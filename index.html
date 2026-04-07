@@ -71,7 +71,7 @@
       <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Worst drawdown</span>
       <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
     </div>
-    <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="spyToggle" style="margin:0 4px 0 0;cursor:pointer;">SPY Buy &amp; Hold</label>
+    <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="spyToggle" style="margin:0 4px 0 0;cursor:pointer;">Compare Algo to SPY Buy &amp; Hold</label>
   </div>
 
   <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
@@ -360,12 +360,14 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     mainDatasets.push({type:'line',label:'SPY buy & hold',data:spyBals,borderColor:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,spanGaps:true,hidden:true});
   }
 
+  const lossNote = '4/2/2026';
+
   const mainChart = new Chart(document.getElementById('mainChart').getContext('2d'),{
     data:{labels,datasets:mainDatasets},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{
         label:ctx=>{const i=ctx.dataIndex;if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}return[` Balance: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(raw[i].pl)}`];},
-        afterBody:items=>{if(!spyBals) return '';const i=items[0]?.dataIndex;if(i==null) return '';const spyDs=mainChart.data.datasets[1];if(!spyDs||spyDs.hidden) return '';const spyVal=spyBals[i];if(spyVal==null) return '';const diff=((adjBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';return ` Algo vs SPY: ${sign}${diff}%`;}
+        afterBody:items=>{const i=items[0]?.dataIndex;if(i==null) return [];const parts=[];if(spyBals){const spyDs=mainChart.data.datasets[1];if(spyDs&&!spyDs.hidden){const spyVal=spyBals[i];if(spyVal!=null){const diff=((adjBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';parts.push(` Algo vs SPY: ${sign}${diff}%`);}}}if(raw[i].d===lossNote){parts.push('');parts.push('Note: Enhanced exit order management has');parts.push('been implemented as a result of this loss.');}return parts;}
       }}},
       scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}}
     },plugins:[drawdownPlugin, winStreakPlugin]
@@ -373,8 +375,11 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
   new Chart(document.getElementById('plChart').getContext('2d'),{
     data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();}}}},
-      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{
+      label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();},
+      afterBody:items=>{const i=items[0]?.dataIndex;if(i==null) return [];return raw[i].d===lossNote?['','Note: Enhanced exit order management has','been implemented as a result of this loss.']:[];}
+    }}},
+      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{min:-2000,ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 
   const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
