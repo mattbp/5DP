@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: '10 21 * * *'  # 1:10 PM PST (UTC-8)
   workflow_dispatch:        # Allows manual triggering from the GitHub UI
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
 jobs:
   update-data:
     runs-on: windows-latest
@@ -13,13 +18,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Wait for Order to appear
         if: github.event_name == 'repository_dispatch' && github.event.action == 'order-filled'
         shell: pwsh
         run: |
           Write-Host "Order-fill trigger detected, waiting 10 minutes for Order to appear ..."
           Start-Sleep -Seconds 600
-          
+
       - name: Run GetIBKROrders script
         env:
           IBKR_TOKEN:    ${{ secrets.IBKR_TOKEN }}
@@ -31,12 +39,35 @@ jobs:
         shell: pwsh
         run: |
           ./scripts/GetMarketData.ps1 -Ticker "SPY" -OutputPath "spy.csv" -ApiKey "${{ secrets.ALPHA_VANTAGE_KEY }}"
-      
+
       - name: Commit and push updated data
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.csv spy.csv
-          git diff --staged --quiet || git commit -m "Auto-update data [$(Get-Date -Format 'yyyy-MM-dd HH:mm')]"
-          git push
+
+          git diff --staged --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "No changes to commit"
+            exit 0
+          }
+
+          git commit -m "Auto-update data [$(Get-Date -Format 'yyyy-MM-dd HH:mm')]"
+
+          $maxAttempts = 5
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            git pull --rebase origin main
+            if ($LASTEXITCODE -eq 0) {
+              git push origin main
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "Push succeeded on attempt $i"
+                exit 0
+              }
+            }
+            Write-Host "Push attempt $i failed, retrying in 5s..."
+            Start-Sleep -Seconds 5
+          }
+
+          Write-Host "All push attempts failed"
+          exit 1
