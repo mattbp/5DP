@@ -158,29 +158,6 @@ a:hover{color:#7cc0ec}
 }
 .ex-name a:hover{border-bottom-color:var(--accent)}
 
-/* Hover preview */
-.ex-preview{
-  position:absolute;top:calc(100% + 8px);left:0;z-index:100;
-  width:260px;background:var(--surface2);border:1px solid var(--border-light);
-  border-radius:var(--radius-sm);overflow:hidden;
-  opacity:0;visibility:hidden;transform:translateY(-4px);
-  transition:opacity .2s,transform .2s,visibility .2s;
-  pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);
-}
-.ex-name:hover .ex-preview{opacity:1;visibility:visible;transform:translateY(0)}
-.ex-preview-svg{
-  width:100%;height:146px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#0f1420,#1a2030);
-  border-bottom:1px solid var(--border);
-}
-.ex-preview-svg svg{width:100%;height:100%;display:block}
-.ex-preview-label{
-  padding:.5rem .75rem;font-size:.7rem;color:var(--text-dim);
-  border-top:1px solid var(--border);
-  display:flex;align-items:center;gap:.35rem;
-}
-.ex-preview-label svg{width:11px;height:11px;color:var(--red)}
-
 .ex-prescription{font-size:.78rem;color:var(--text-dim);margin-top:2px}
 .ex-prescription .est{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.72rem}
 .ex-ski-note{
@@ -235,7 +212,6 @@ a:hover{color:#7cc0ec}
   .week-header{padding:.8rem 1rem}
   .week-body{padding:0 1rem 1rem}
   .track-input{width:90px}
-  .ex-preview{width:220px;left:auto;right:0}
 }
 </style>
 </head>
@@ -275,118 +251,99 @@ a:hover{color:#7cc0ec}
 // Categories: squat, hinge, lunge, upper-push, upper-pull, core, plyo,
 // lateral, balance, mobility, cardio, iso, carry
 const EX = {
-  gobletSquat: { name:"Goblet Squat", q:"goblet squat proper form", cat:"squat", skiNote:"Quad dominance mirrors the flexed-knee stance skiing demands" },
-  gobletSquatSlow: { name:"Goblet Squat (3s eccentric)", q:"goblet squat tempo eccentric form", cat:"squat", skiNote:"Slow eccentrics build the exact braking strength your quads need in moguls" },
-  gluteBridge: { name:"Glute Bridge", q:"glute bridge exercise form", cat:"hinge", skiNote:"Hip extension powers you out of tuck and absorbs terrain changes" },
-  sLegGluteBridge: { name:"Single-Leg Glute Bridge", q:"single leg glute bridge form", cat:"hinge" },
-  reverseLunge: { name:"Bodyweight Reverse Lunge", q:"bodyweight reverse lunge form", cat:"lunge", skiNote:"Single-leg stability is how you hold an edge through variable snow" },
-  reverseLungeDB: { name:"Reverse Lunge (DB)", q:"dumbbell reverse lunge form", cat:"lunge" },
-  deadBug: { name:"Dead Bug", q:"dead bug exercise proper form", cat:"core", skiNote:"Anti-extension core control keeps your torso quiet while legs work underneath" },
-  deadBugSlow: { name:"Dead Bug (slow tempo)", q:"dead bug slow tempo form", cat:"core" },
-  deadBugWt: { name:"Dead Bug (weighted)", q:"weighted dead bug exercise", cat:"core" },
-  clamshell: { name:"Banded Clamshell", q:"banded clamshell exercise form", cat:"mobility", skiNote:"Glute med activation prevents knee valgus collapse in turns" },
-  pushup: { name:"Push-up", q:"proper pushup form", cat:"upper-push" },
-  pushupHard: { name:"Push-up (add weight vest if easy)", q:"weighted pushup vest form", cat:"upper-push" },
-  bandPullApart: { name:"Band Pull-Apart", q:"band pull apart exercise form", cat:"upper-pull", skiNote:"Rear delt & scap stability protects shoulders in falls and pole plants" },
-  dbRow: { name:"Dumbbell Row", q:"single arm dumbbell row form", cat:"upper-pull" },
-  dbRowLight: { name:"DB Row (light)", q:"dumbbell row form", cat:"upper-pull" },
-  walk: { name:"Walk / Easy Bike", q:"zone 2 cardio walking", cat:"cardio", skiNote:"Aerobic base directly supports sustained effort across long ski days" },
-  bwSquat: { name:"Bodyweight Squat", q:"bodyweight squat proper form", cat:"squat" },
-  stepUp: { name:"Step-Up", q:"dumbbell step up exercise form", cat:"lunge", skiNote:"Unilateral quad/glute strength for absorbing each turn's G-force" },
-  stepUpHigh: { name:"Step-Up (higher box)", q:"high box step up form", cat:"lunge" },
-  stepUpHeavy: { name:"Step-Up (heavy)", q:"heavy dumbbell step up", cat:"lunge" },
-  hipAbd: { name:"Side-Lying Hip Abduction", q:"side lying hip abduction form", cat:"mobility" },
-  plank: { name:"Plank Hold", q:"proper plank form", cat:"iso", skiNote:"Isometric core endurance — your trunk holds a brace every single run" },
-  plankWt: { name:"Plank (weighted)", q:"weighted plank form", cat:"iso" },
-  hipStretch90: { name:"90/90 Hip Stretch", q:"90 90 hip stretch mobility", cat:"mobility", skiNote:"Hip mobility enables deeper flexion without compensating at the low back" },
-  dbRDL: { name:"Dumbbell RDL", q:"dumbbell romanian deadlift form", cat:"hinge", skiNote:"Posterior chain strength protects your knees from forward shear in ski boots" },
-  walkingLunge: { name:"Walking Lunge", q:"dumbbell walking lunge form", cat:"lunge" },
-  walkingLungeBW: { name:"Walking Lunge (BW)", q:"bodyweight walking lunge form", cat:"lunge" },
-  birdDog: { name:"Bird Dog", q:"bird dog exercise proper form", cat:"core", skiNote:"Contralateral stability pattern used in every carved turn" },
-  pallof: { name:"Pallof Press", q:"pallof press band form", cat:"core", skiNote:"Anti-rotation strength is THE core demand of skiing — resisting rotational forces every turn" },
-  pallofHeavy: { name:"Pallof Press (heavier band)", q:"heavy pallof press form", cat:"core" },
-  cycling: { name:"Cycling / Walk / Hike", q:"zone 2 cardio training", cat:"cardio" },
-  ankleMob: { name:"Ankle Dorsiflexion Mob", q:"ankle dorsiflexion mobility drill", cat:"mobility", skiNote:"Ankle mobility dictates how deep you can flex into your boots without breaking at the waist" },
-  wgs: { name:"World's Greatest Stretch", q:"worlds greatest stretch mobility", cat:"mobility" },
-  dbFloorPress: { name:"Dumbbell Floor Press", q:"dumbbell floor press form", cat:"upper-push" },
-  dbOHP: { name:"Dumbbell Overhead Press", q:"dumbbell overhead press form", cat:"upper-push" },
-  bsplit: { name:"Bulgarian Split Squat", q:"bulgarian split squat form", cat:"lunge", skiNote:"The king of ski-specific leg exercises — unilateral, quad-heavy, balance-demanding" },
-  bsplitHeavy: { name:"Bulgarian Split Squat (heavy)", q:"heavy bulgarian split squat", cat:"lunge", skiNote:"Heavy single-leg = edge hold strength on hardpack and ice" },
-  bsplitFFE: { name:"Front Foot Elevated Split Squat", q:"front foot elevated split squat form", cat:"lunge" },
-  hipThrustDB: { name:"Hip Thrust (DB)", q:"dumbbell hip thrust form", cat:"hinge" },
-  hipThrustBB: { name:"Hip Thrust (BB)", q:"barbell hip thrust form", cat:"hinge" },
-  hipThrustHeavy: { name:"Hip Thrust (heavy)", q:"heavy barbell hip thrust", cat:"hinge" },
-  calfRaise: { name:"Calf Raise", q:"calf raise proper form", cat:"iso", skiNote:"Calf endurance supports ankle pressure into ski boot tongues all day" },
-  sLegCalf: { name:"Single-Leg Calf Raise", q:"single leg calf raise form", cat:"iso" },
-  sLegBalance: { name:"Single-Leg Balance Hold", q:"single leg balance exercise", cat:"balance", skiNote:"Proprioception — your nervous system needs to react faster than you can think on the mountain" },
-  sLegBalanceEC: { name:"Single-Leg Balance (eyes closed)", q:"single leg balance eyes closed", cat:"balance", skiNote:"Eyes-closed balance forces deep proprioceptive engagement — your body learns to react without visual cues" },
-  foamRoll: { name:"Foam Roll + Stretch", q:"full body foam rolling routine", cat:"mobility" },
-  fullMob: { name:"Full Mobility Circuit", q:"full body mobility routine", cat:"mobility" },
-  backSquat: { name:"Barbell Back Squat", q:"barbell back squat proper form", cat:"squat", skiNote:"The foundation — quad strength with full-body stabilization under load" },
-  backSquatSlow: { name:"Back Squat (3s eccentric)", q:"tempo squat eccentric form", cat:"squat", skiNote:"Tempo eccentrics at heavier loads build the braking strength for steep terrain" },
-  backSquatPause: { name:"Back Squat (pause at bottom)", q:"pause squat form", cat:"squat", skiNote:"Pause squats build bottom-position strength — the deepest flex in turns" },
-  backSquat55: { name:"Back Squat — 5×5", q:"5x5 back squat strength program", cat:"squat", skiNote:"5×5 at heavy load builds maximal strength that underpins all ski performance" },
-  backSquatLight: { name:"Back Squat (light)", q:"back squat form", cat:"squat" },
-  bbRDL: { name:"Barbell RDL", q:"barbell romanian deadlift form", cat:"hinge", skiNote:"Hamstring/glute strength balances the quad dominance and protects ACLs" },
-  bench: { name:"Barbell Bench Press", q:"barbell bench press form", cat:"upper-push" },
-  bbRow: { name:"Barbell Bent-Over Row", q:"barbell bent over row form", cat:"upper-pull" },
-  bbOHP: { name:"Overhead Press (BB)", q:"barbell overhead press form", cat:"upper-push" },
-  facePull: { name:"Face Pull", q:"cable face pull form", cat:"upper-pull" },
-  pullup: { name:"Pull-up", q:"pull up proper form", cat:"upper-pull" },
-  pullupWt: { name:"Weighted Pull-up", q:"weighted pull up form", cat:"upper-pull" },
-  legPress: { name:"Leg Press", q:"leg press proper form", cat:"squat" },
-  legPressHigh: { name:"Leg Press (feet high)", q:"leg press feet high glute emphasis", cat:"squat", skiNote:"High foot placement shifts emphasis to glutes/hams — injury prevention for knees" },
-  legCurl: { name:"Leg Curl", q:"lying leg curl form", cat:"hinge" },
-  legExtSlow: { name:"Leg Extension (slow eccentric)", q:"leg extension tempo slow eccentric", cat:"iso", skiNote:"Isolated quad work builds endurance in the primary skiing muscle" },
-  sLegRDL: { name:"Single-Leg RDL (DB)", q:"single leg romanian deadlift dumbbell form", cat:"hinge", skiNote:"Balance + hamstring strength on one leg — critical for variable terrain" },
-  sLegRDLHeavy: { name:"Single-Leg RDL (heavy DB)", q:"heavy single leg romanian deadlift", cat:"hinge" },
-  woodchop: { name:"Cable Woodchop", q:"cable woodchop exercise form", cat:"core", skiNote:"Rotational power transfer — every carved turn transmits force diagonally through your trunk" },
-  woodchopFast: { name:"Cable Woodchop (fast)", q:"explosive cable woodchop", cat:"core" },
-  abWheel: { name:"Ab Wheel Rollout", q:"ab wheel rollout proper form", cat:"core", skiNote:"Anti-extension under load — your trunk must resist folding on steep groomers" },
-  bikeInt: { name:"Bike Intervals", q:"bike interval training workout", cat:"cardio" },
-  stairInt: { name:"Stair / Hill Repeats", q:"stair hill repeat workout", cat:"cardio", skiNote:"Incline work builds quad endurance specific to sustained descents" },
-  hillSprints: { name:"Hill Sprints", q:"hill sprint workout form", cat:"cardio" },
-  skierg: { name:"Ski Erg Intervals", q:"concept2 ski erg interval workout", cat:"cardio", skiNote:"Ski erg is the closest cardio approximation to skiing's full-body demand" },
-  skiergHIIT: { name:"Ski Erg HIIT", q:"ski erg hiit workout", cat:"cardio" },
-  rowInt: { name:"Row Intervals", q:"rowing interval workout", cat:"cardio" },
-  boxJump: { name:"Box Jump (step down)", q:"box jump step down form", cat:"plyo", skiNote:"Explosive hip/knee extension — the burst you need initiating each turn" },
-  boxJumpHi: { name:"Single-Leg Box Jump", q:"single leg box jump form", cat:"plyo", skiNote:"Single-leg explosive power for recovering from imbalanced landings" },
-  depthJump: { name:"Depth Jump", q:"depth jump plyometric form", cat:"plyo", skiNote:"Reactive strength — landing and immediately exploding teaches fast absorption & redirection, like hitting a compression" },
-  depthToBox: { name:"Depth Jump to Box Jump", q:"depth jump to box jump", cat:"plyo" },
-  mbChest: { name:"Med Ball Chest Pass", q:"medicine ball chest pass form", cat:"upper-push", skiNote:"Upper body power transfer — pole plants and crash recovery" },
-  mbSlam: { name:"Med Ball Slam", q:"medicine ball slam form", cat:"plyo" },
-  mbOHSlam: { name:"Med Ball Overhead Slam", q:"medicine ball overhead slam form", cat:"plyo" },
-  mbRot: { name:"Med Ball Rotational Slam", q:"medicine ball rotational slam form", cat:"plyo", skiNote:"Explosive rotation — critical for mogul absorption and quick direction changes" },
-  skater: { name:"Skater Hop (stick landing)", q:"skater hop stick landing form", cat:"lateral", skiNote:"THIS IS THE SKI EXERCISE — lateral single-leg power exactly mimics edge-to-edge transitions" },
-  skaterCont: { name:"Skater Hops (continuous)", q:"continuous skater hops", cat:"lateral", skiNote:"Continuous lateral bounding simulates rhythmic turn-to-turn transitions" },
-  lateralBound: { name:"Lateral Bound (stick 2s)", q:"lateral bound stick landing form", cat:"lateral", skiNote:"Sticking the landing builds the eccentric landing control you need on every turn" },
-  lateralShuffle: { name:"Lateral Shuffle", q:"lateral shuffle agility drill", cat:"lateral", skiNote:"Lateral conditioning trains the adductors and hip stabilizers for edge hold" },
-  lateralToSprint: { name:"Lateral Shuffle to Sprint", q:"lateral shuffle to sprint drill", cat:"lateral" },
-  bosu: { name:"BOSU Single-Leg Hold", q:"bosu ball single leg balance", cat:"balance", skiNote:"Unstable surface balance trains the fast-twitch proprioceptive responses skiing demands" },
-  bosuSquat: { name:"Single-Leg BOSU Squat", q:"bosu single leg squat", cat:"balance" },
-  wallSit: { name:"Wall Sit", q:"wall sit proper form", cat:"iso", skiNote:"Isometric quad endurance in the exact flexion angle of a ski tuck" },
-  tabata: { name:"Tabata Circuit: Jump Squat / Skater / Burpee / Plank", q:"tabata full body workout", cat:"cardio", skiNote:"High-intensity circuit mimics the repeated anaerobic bursts of aggressive skiing" },
-  tabataFinal: { name:"Tabata: Burpee / Skater / Jump Squat / Plank", q:"tabata workout burpee skater", cat:"cardio" },
-  skiDay: { name:"Hit the mountain", q:"", cat:"", skiNote:"This is what you trained for. Send it." },
-};
-
-// ─── SVG ILLUSTRATIONS BY CATEGORY ───
-// Consistent style: thin stroke line art, accent color, 260x146 aspect
-// Provides a visual preview when hovering over an exercise name
-const CATEGORY_SVG = {
-  squat: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="130" cy="38" r="11"/><path d="M130 49 L130 82 M130 70 L105 70 M130 70 L155 70 M130 82 L112 110 L112 130 M130 82 L148 110 L148 130 M88 70 L172 70" stroke-width="3"/><path d="M86 68 L86 72 M174 68 L174 72" stroke-width="4"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">SQUAT PATTERN</text></svg>`,
-  hinge: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="100" cy="55" r="10"/><path d="M100 65 L135 85 M135 85 L155 100 L155 125 M135 85 L145 105 L145 125 M118 78 L90 95 M118 78 L90 95" stroke-width="3"/><path d="M82 95 L98 95 M82 93 L82 97 M98 93 L98 97" stroke-width="3"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">HIP HINGE</text></svg>`,
-  lunge: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="125" cy="38" r="11"/><path d="M125 49 L125 80 M125 80 L100 110 L100 128 M125 80 L155 100 L170 128" stroke-width="3"/><path d="M92 128 L108 128 M162 128 L178 128" stroke-width="3"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">SINGLE-LEG</text></svg>`,
-  'upper-push': `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="80" cy="70" r="10"/><path d="M90 72 L175 72 M90 68 L130 58 M90 76 L130 85 M175 65 L175 79" stroke-width="3"/><path d="M175 65 L185 65 M175 79 L185 79" stroke-width="4"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">PUSH PATTERN</text></svg>`,
-  'upper-pull': `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="130" cy="55" r="10"/><path d="M130 65 L130 95 M130 75 L100 60 M130 75 L160 60 M130 95 L115 120 M130 95 L145 120" stroke-width="3"/><path d="M92 56 L108 60 M92 54 L92 58 M152 60 L168 56 M168 54 L168 58" stroke-width="3"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">PULL PATTERN</text></svg>`,
-  core: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="90" cy="75" r="10"/><path d="M100 78 L170 78 M115 72 L140 55 M155 82 L180 100" stroke-width="3"/><ellipse cx="135" cy="80" rx="20" ry="8" stroke-dasharray="3,3"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">CORE STABILITY</text></svg>`,
-  plyo: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="130" cy="30" r="10"/><path d="M130 40 L130 70 M130 55 L110 60 M130 55 L150 60 M130 70 L115 95 M130 70 L145 95" stroke-width="3"/><path d="M95 115 L165 115 L165 130 L95 130 Z" stroke-width="3"/><path d="M118 45 L108 38 M142 45 L152 38 M130 15 L120 8 M130 15 L140 8" stroke-width="2" stroke-dasharray="2,2"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">EXPLOSIVE JUMP</text></svg>`,
-  lateral: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="90" cy="50" r="9" opacity="0.4"/><path d="M90 59 L90 85 M90 72 L75 82 M90 72 L100 78 M90 85 L78 105 M90 85 L100 105" stroke-width="2" opacity="0.4"/><circle cx="175" cy="50" r="10"/><path d="M175 60 L175 90 M175 75 L155 82 M175 75 L195 82 M175 90 L160 115 M175 90 L190 115" stroke-width="3"/><path d="M110 85 L155 85" stroke-width="2" stroke-dasharray="4,3"/><path d="M145 78 L158 85 L145 92" stroke-width="2"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">LATERAL POWER</text></svg>`,
-  balance: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="130" cy="38" r="10"/><path d="M130 48 L130 78 M130 62 L108 55 M130 62 L152 55 M130 78 L118 108" stroke-width="3"/><path d="M130 78 L150 95 L150 100" stroke-width="3" stroke-dasharray="3,3"/><ellipse cx="118" cy="120" rx="22" ry="5"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">BALANCE</text></svg>`,
-  mobility: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="75" cy="70" r="9"/><path d="M84 72 L115 80 M115 80 L145 70 L175 80 M115 80 L135 105 L125 125 M145 70 L165 95 L175 120" stroke-width="3"/><path d="M200 60 Q210 70 200 80 M208 55 Q222 70 208 85" stroke-width="2"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">MOBILITY</text></svg>`,
-  cardio: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M40 90 L70 90 L80 70 L100 110 L115 60 L130 95 L145 75 L160 90 L220 90" stroke-width="2.5"/><circle cx="130" cy="40" r="10"/><path d="M130 50 L125 70" stroke-width="2"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">CONDITIONING</text></svg>`,
-  iso: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="95" cy="42" r="10"/><path d="M95 52 L95 88 M95 70 L115 75 M95 70 L75 75 M95 88 L120 88 L120 118 M95 88 L78 118" stroke-width="3"/><path d="M125 118 L135 118" stroke-width="4"/><path d="M150 50 L165 50 M150 60 L170 60 M150 70 L168 70" stroke-width="2" opacity="0.5"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">ISOMETRIC HOLD</text></svg>`,
-  default: `<svg viewBox="0 0 260 146" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#4fa8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="130" cy="45" r="12"/><path d="M130 57 L130 95 M130 75 L105 85 M130 75 L155 85 M130 95 L110 125 M130 95 L150 125" stroke-width="3"/></g><text x="130" y="142" fill="#8892a6" font-size="9" text-anchor="middle" font-family="monospace">MOVEMENT</text></svg>`,
+  gobletSquat: { name:"Goblet Squat", q:"goblet squat proper form", skiNote:"Quad dominance mirrors the flexed-knee stance skiing demands" },
+  gobletSquatSlow: { name:"Goblet Squat (3s eccentric)", q:"goblet squat tempo eccentric form", skiNote:"Slow eccentrics build the exact braking strength your quads need in moguls" },
+  gluteBridge: { name:"Glute Bridge", q:"glute bridge exercise form", skiNote:"Hip extension powers you out of tuck and absorbs terrain changes" },
+  sLegGluteBridge: { name:"Single-Leg Glute Bridge", q:"single leg glute bridge form" },
+  reverseLunge: { name:"Bodyweight Reverse Lunge", q:"bodyweight reverse lunge form", skiNote:"Single-leg stability is how you hold an edge through variable snow" },
+  reverseLungeDB: { name:"Reverse Lunge (DB)", q:"dumbbell reverse lunge form" },
+  deadBug: { name:"Dead Bug", q:"dead bug exercise proper form", skiNote:"Anti-extension core control keeps your torso quiet while legs work underneath" },
+  deadBugSlow: { name:"Dead Bug (slow tempo)", q:"dead bug slow tempo form" },
+  deadBugWt: { name:"Dead Bug (weighted)", q:"weighted dead bug exercise" },
+  clamshell: { name:"Banded Clamshell", q:"banded clamshell exercise form", skiNote:"Glute med activation prevents knee valgus collapse in turns" },
+  pushup: { name:"Push-up", q:"proper pushup form" },
+  pushupHard: { name:"Push-up (add weight vest if easy)", q:"weighted pushup vest form" },
+  bandPullApart: { name:"Band Pull-Apart", q:"band pull apart exercise form", skiNote:"Rear delt & scap stability protects shoulders in falls and pole plants" },
+  dbRow: { name:"Dumbbell Row", q:"single arm dumbbell row form" },
+  dbRowLight: { name:"DB Row (light)", q:"dumbbell row form" },
+  walk: { name:"Walk / Easy Bike", q:"zone 2 cardio walking", skiNote:"Aerobic base directly supports sustained effort across long ski days" },
+  bwSquat: { name:"Bodyweight Squat", q:"bodyweight squat proper form" },
+  stepUp: { name:"Step-Up", q:"dumbbell step up exercise form", skiNote:"Unilateral quad/glute strength for absorbing each turn's G-force" },
+  stepUpHigh: { name:"Step-Up (higher box)", q:"high box step up form" },
+  stepUpHeavy: { name:"Step-Up (heavy)", q:"heavy dumbbell step up" },
+  hipAbd: { name:"Side-Lying Hip Abduction", q:"side lying hip abduction form" },
+  plank: { name:"Plank Hold", q:"proper plank form", skiNote:"Isometric core endurance — your trunk holds a brace every single run" },
+  plankWt: { name:"Plank (weighted)", q:"weighted plank form" },
+  hipStretch90: { name:"90/90 Hip Stretch", q:"90 90 hip stretch mobility", skiNote:"Hip mobility enables deeper flexion without compensating at the low back" },
+  dbRDL: { name:"Dumbbell RDL", q:"dumbbell romanian deadlift form", skiNote:"Posterior chain strength protects your knees from forward shear in ski boots" },
+  walkingLunge: { name:"Walking Lunge", q:"dumbbell walking lunge form" },
+  walkingLungeBW: { name:"Walking Lunge (BW)", q:"bodyweight walking lunge form" },
+  birdDog: { name:"Bird Dog", q:"bird dog exercise proper form", skiNote:"Contralateral stability pattern used in every carved turn" },
+  pallof: { name:"Pallof Press", q:"pallof press band form", skiNote:"Anti-rotation strength is THE core demand of skiing — resisting rotational forces every turn" },
+  pallofHeavy: { name:"Pallof Press (heavier band)", q:"heavy pallof press form" },
+  cycling: { name:"Cycling / Walk / Hike", q:"zone 2 cardio training" },
+  ankleMob: { name:"Ankle Dorsiflexion Mob", q:"ankle dorsiflexion mobility drill", skiNote:"Ankle mobility dictates how deep you can flex into your boots without breaking at the waist" },
+  wgs: { name:"World's Greatest Stretch", q:"worlds greatest stretch mobility" },
+  dbFloorPress: { name:"Dumbbell Floor Press", q:"dumbbell floor press form" },
+  dbOHP: { name:"Dumbbell Overhead Press", q:"dumbbell overhead press form" },
+  bsplit: { name:"Bulgarian Split Squat", q:"bulgarian split squat form", skiNote:"The king of ski-specific leg exercises — unilateral, quad-heavy, balance-demanding" },
+  bsplitHeavy: { name:"Bulgarian Split Squat (heavy)", q:"heavy bulgarian split squat", skiNote:"Heavy single-leg = edge hold strength on hardpack and ice" },
+  bsplitFFE: { name:"Front Foot Elevated Split Squat", q:"front foot elevated split squat form" },
+  hipThrustDB: { name:"Hip Thrust (DB)", q:"dumbbell hip thrust form" },
+  hipThrustBB: { name:"Hip Thrust (BB)", q:"barbell hip thrust form" },
+  hipThrustHeavy: { name:"Hip Thrust (heavy)", q:"heavy barbell hip thrust" },
+  calfRaise: { name:"Calf Raise", q:"calf raise proper form", skiNote:"Calf endurance supports ankle pressure into ski boot tongues all day" },
+  sLegCalf: { name:"Single-Leg Calf Raise", q:"single leg calf raise form" },
+  sLegBalance: { name:"Single-Leg Balance Hold", q:"single leg balance exercise", skiNote:"Proprioception — your nervous system needs to react faster than you can think on the mountain" },
+  sLegBalanceEC: { name:"Single-Leg Balance (eyes closed)", q:"single leg balance eyes closed", skiNote:"Eyes-closed balance forces deep proprioceptive engagement — your body learns to react without visual cues" },
+  foamRoll: { name:"Foam Roll + Stretch", q:"full body foam rolling routine" },
+  fullMob: { name:"Full Mobility Circuit", q:"full body mobility routine" },
+  backSquat: { name:"Barbell Back Squat", q:"barbell back squat proper form", skiNote:"The foundation — quad strength with full-body stabilization under load" },
+  backSquatSlow: { name:"Back Squat (3s eccentric)", q:"tempo squat eccentric form", skiNote:"Tempo eccentrics at heavier loads build the braking strength for steep terrain" },
+  backSquatPause: { name:"Back Squat (pause at bottom)", q:"pause squat form", skiNote:"Pause squats build bottom-position strength — the deepest flex in turns" },
+  backSquat55: { name:"Back Squat — 5×5", q:"5x5 back squat strength program", skiNote:"5×5 at heavy load builds maximal strength that underpins all ski performance" },
+  backSquatLight: { name:"Back Squat (light)", q:"back squat form" },
+  bbRDL: { name:"Barbell RDL", q:"barbell romanian deadlift form", skiNote:"Hamstring/glute strength balances the quad dominance and protects ACLs" },
+  bench: { name:"Barbell Bench Press", q:"barbell bench press form" },
+  bbRow: { name:"Barbell Bent-Over Row", q:"barbell bent over row form" },
+  bbOHP: { name:"Overhead Press (BB)", q:"barbell overhead press form" },
+  facePull: { name:"Face Pull", q:"cable face pull form" },
+  pullup: { name:"Pull-up", q:"pull up proper form" },
+  pullupWt: { name:"Weighted Pull-up", q:"weighted pull up form" },
+  legPress: { name:"Leg Press", q:"leg press proper form" },
+  legPressHigh: { name:"Leg Press (feet high)", q:"leg press feet high glute emphasis", skiNote:"High foot placement shifts emphasis to glutes/hams — injury prevention for knees" },
+  legCurl: { name:"Leg Curl", q:"lying leg curl form" },
+  legExtSlow: { name:"Leg Extension (slow eccentric)", q:"leg extension tempo slow eccentric", skiNote:"Isolated quad work builds endurance in the primary skiing muscle" },
+  sLegRDL: { name:"Single-Leg RDL (DB)", q:"single leg romanian deadlift dumbbell form", skiNote:"Balance + hamstring strength on one leg — critical for variable terrain" },
+  sLegRDLHeavy: { name:"Single-Leg RDL (heavy DB)", q:"heavy single leg romanian deadlift" },
+  woodchop: { name:"Cable Woodchop", q:"cable woodchop exercise form", skiNote:"Rotational power transfer — every carved turn transmits force diagonally through your trunk" },
+  woodchopFast: { name:"Cable Woodchop (fast)", q:"explosive cable woodchop" },
+  abWheel: { name:"Ab Wheel Rollout", q:"ab wheel rollout proper form", skiNote:"Anti-extension under load — your trunk must resist folding on steep groomers" },
+  bikeInt: { name:"Bike Intervals", q:"bike interval training workout" },
+  stairInt: { name:"Stair / Hill Repeats", q:"stair hill repeat workout", skiNote:"Incline work builds quad endurance specific to sustained descents" },
+  hillSprints: { name:"Hill Sprints", q:"hill sprint workout form" },
+  skierg: { name:"Ski Erg Intervals", q:"concept2 ski erg interval workout", skiNote:"Ski erg is the closest cardio approximation to skiing's full-body demand" },
+  skiergHIIT: { name:"Ski Erg HIIT", q:"ski erg hiit workout" },
+  rowInt: { name:"Row Intervals", q:"rowing interval workout" },
+  boxJump: { name:"Box Jump (step down)", q:"box jump step down form", skiNote:"Explosive hip/knee extension — the burst you need initiating each turn" },
+  boxJumpHi: { name:"Single-Leg Box Jump", q:"single leg box jump form", skiNote:"Single-leg explosive power for recovering from imbalanced landings" },
+  depthJump: { name:"Depth Jump", q:"depth jump plyometric form", skiNote:"Reactive strength — landing and immediately exploding teaches fast absorption & redirection, like hitting a compression" },
+  depthToBox: { name:"Depth Jump to Box Jump", q:"depth jump to box jump" },
+  mbChest: { name:"Med Ball Chest Pass", q:"medicine ball chest pass form", skiNote:"Upper body power transfer — pole plants and crash recovery" },
+  mbSlam: { name:"Med Ball Slam", q:"medicine ball slam form" },
+  mbOHSlam: { name:"Med Ball Overhead Slam", q:"medicine ball overhead slam form" },
+  mbRot: { name:"Med Ball Rotational Slam", q:"medicine ball rotational slam form", skiNote:"Explosive rotation — critical for mogul absorption and quick direction changes" },
+  skater: { name:"Skater Hop (stick landing)", q:"skater hop stick landing form", skiNote:"THIS IS THE SKI EXERCISE — lateral single-leg power exactly mimics edge-to-edge transitions" },
+  skaterCont: { name:"Skater Hops (continuous)", q:"continuous skater hops", skiNote:"Continuous lateral bounding simulates rhythmic turn-to-turn transitions" },
+  lateralBound: { name:"Lateral Bound (stick 2s)", q:"lateral bound stick landing form", skiNote:"Sticking the landing builds the eccentric landing control you need on every turn" },
+  lateralShuffle: { name:"Lateral Shuffle", q:"lateral shuffle agility drill", skiNote:"Lateral conditioning trains the adductors and hip stabilizers for edge hold" },
+  lateralToSprint: { name:"Lateral Shuffle to Sprint", q:"lateral shuffle to sprint drill" },
+  bosu: { name:"BOSU Single-Leg Hold", q:"bosu ball single leg balance", skiNote:"Unstable surface balance trains the fast-twitch proprioceptive responses skiing demands" },
+  bosuSquat: { name:"Single-Leg BOSU Squat", q:"bosu single leg squat" },
+  wallSit: { name:"Wall Sit", q:"wall sit proper form", skiNote:"Isometric quad endurance in the exact flexion angle of a ski tuck" },
+  tabata: { name:"Tabata Circuit: Jump Squat / Skater / Burpee / Plank", q:"tabata full body workout", skiNote:"High-intensity circuit mimics the repeated anaerobic bursts of aggressive skiing" },
+  tabataFinal: { name:"Tabata: Burpee / Skater / Jump Squat / Plank", q:"tabata workout burpee skater" },
+  skiDay: { name:"Hit the mountain", q:"", skiNote:"This is what you trained for. Send it." },
 };
 
 function searchUrl(q) {
@@ -1050,20 +1007,9 @@ function render() {
           const done = state[keyEx(wi, di, ei)];
           const linkUrl = searchUrl(ex.q);
           const skiNote = ex.skiNote || '';
-          const svg = CATEGORY_SVG[ex.cat] || CATEGORY_SVG.default;
           const nameHtml = linkUrl
             ? `<a href="${linkUrl}" target="_blank" rel="noopener">${ex.name}</a>`
             : ex.name;
-
-          const preview = linkUrl
-            ? `<div class="ex-preview">
-                <div class="ex-preview-svg">${svg}</div>
-                <div class="ex-preview-label">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 15l5.19-3L10 9v6zm11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
-                  Click to search YouTube for form videos
-                </div>
-              </div>`
-            : '';
 
           const estStr = row.estMin ? ` — Est: ${row.estMin} min` : '';
           const restStr = row.rest ? ` — rest ${row.rest}` : '';
@@ -1073,7 +1019,7 @@ function render() {
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
             </div>
             <div class="ex-content">
-              <div class="ex-name">${nameHtml}${preview}</div>
+              <div class="ex-name">${nameHtml}</div>
               <div class="ex-prescription">${row.sets}${restStr}<span class="est">${estStr}</span></div>
               ${skiNote ? `<div class="ex-ski-note">⛷ ${skiNote}</div>` : ''}
               <div class="ex-tracking">
