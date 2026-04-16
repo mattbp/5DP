@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Summit Training — Ski Season Prep Program</title>
+<title>Big Daddy's Post Cancer Ski Workout per Claude!</title>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-8HKEKVB8PM"></script><script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-8HKEKVB8PM');</script>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -42,8 +42,9 @@ a:hover{color:#7cc0ec}
 .header-badge svg{width:14px;height:14px}
 .header h1{
   font-family:'Instrument Serif',serif;font-size:2.4rem;font-weight:400;
-  line-height:1.15;margin-bottom:.5rem;color:#fff;
+  line-height:1.1;margin-bottom:.5rem;color:#fff;
 }
+.header h1 .accent{color:var(--accent);font-style:italic}
 .header p.sub{color:var(--text-dim);font-size:.9rem;max-width:600px}
 
 /* Progress Bar */
@@ -99,13 +100,17 @@ a:hover{color:#7cc0ec}
 .week-check.done svg{opacity:1}
 .week-check svg{width:14px;height:14px;opacity:0;transition:opacity .2s}
 
-.week-title{flex:1}
+.week-title{flex:1;min-width:0}
+.week-date{
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);
+  letter-spacing:.05em;margin-bottom:2px;
+}
 .week-title strong{font-size:.95rem;color:#fff;font-weight:600}
-.week-title span{display:block;font-size:.75rem;color:var(--text-dim);margin-top:2px}
+.week-title span.desc{display:block;font-size:.75rem;color:var(--text-dim);margin-top:2px}
 
 .week-expand{
   width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-  color:var(--text-dim);transition:transform .3s,color .3s;
+  color:var(--text-dim);transition:transform .3s,color .3s;flex-shrink:0;
 }
 .week-card.open .week-expand{transform:rotate(180deg);color:var(--accent)}
 
@@ -119,7 +124,9 @@ a:hover{color:#7cc0ec}
   font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--text-faint);font-weight:600;margin-bottom:.5rem;
   padding-bottom:.35rem;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
 }
+.day-est{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.65rem}
 
 /* Exercise Row */
 .ex-row{
@@ -140,10 +147,42 @@ a:hover{color:#7cc0ec}
 .ex-check.done svg{opacity:1}
 
 .ex-content{min-width:0}
-.ex-name{font-size:.88rem;font-weight:500;color:var(--text)}
-.ex-name a{color:var(--accent);border-bottom:1px dashed rgba(79,168,224,0.3)}
+.ex-name{font-size:.88rem;font-weight:500;color:var(--text);position:relative;display:inline-block}
+.ex-name a{
+  color:var(--accent);border-bottom:1px dashed rgba(79,168,224,0.3);
+  padding-right:14px;position:relative;
+}
+.ex-name a::after{
+  content:'↗';position:absolute;right:0;top:-2px;
+  font-size:.7rem;opacity:.6;
+}
 .ex-name a:hover{border-bottom-color:var(--accent)}
+
+/* Hover preview */
+.ex-preview{
+  position:absolute;top:calc(100% + 8px);left:0;z-index:100;
+  width:260px;background:var(--surface2);border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);overflow:hidden;
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .2s,transform .2s,visibility .2s;
+  pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.ex-name:hover .ex-preview{opacity:1;visibility:visible;transform:translateY(0)}
+.ex-preview img{width:100%;height:auto;display:block;background:#000}
+.ex-preview-fallback{
+  width:100%;height:146px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--surface3),var(--surface2));
+  color:var(--text-dim);font-size:.7rem;text-align:center;padding:1rem;
+}
+.ex-preview-label{
+  padding:.5rem .75rem;font-size:.7rem;color:var(--text-dim);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:.35rem;
+}
+.ex-preview-label svg{width:11px;height:11px;color:var(--red)}
+
 .ex-prescription{font-size:.78rem;color:var(--text-dim);margin-top:2px}
+.ex-prescription .est{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.72rem}
 .ex-ski-note{
   font-size:.72rem;color:var(--orange);margin-top:4px;
   padding:4px 8px;background:var(--orange-bg);border-radius:var(--radius-sm);
@@ -174,10 +213,8 @@ a:hover{color:#7cc0ec}
 .week-notes textarea:focus{border-color:var(--accent)}
 .week-notes label{font-size:.72rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;display:block}
 
-/* Reset Button */
-.reset-section{
-  max-width:900px;margin:0 auto;padding:0 1.5rem 3rem;text-align:center;
-}
+/* Reset */
+.reset-section{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem;text-align:center}
 .reset-btn{
   background:var(--red-bg);border:1px solid rgba(224,92,92,0.2);
   color:var(--red);padding:.5rem 1.25rem;border-radius:var(--radius-sm);
@@ -194,10 +231,11 @@ a:hover{color:#7cc0ec}
 }
 
 @media(max-width:600px){
-  .header h1{font-size:1.8rem}
+  .header h1{font-size:1.6rem}
   .week-header{padding:.8rem 1rem}
   .week-body{padding:0 1rem 1rem}
   .track-input{width:90px}
+  .ex-preview{width:220px;left:auto;right:0}
 }
 </style>
 </head>
@@ -206,9 +244,9 @@ a:hover{color:#7cc0ec}
 <div class="header">
   <div class="header-badge">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20L12 2z"/></svg>
-    Summit Training Program
+    Post-Cancer Ski Comeback
   </div>
-  <h1>Ski Season Strength &amp; Conditioning</h1>
+  <h1>Big Daddy's Post Cancer Ski Workout <span class="accent">per Claude!</span></h1>
   <p class="sub">24-week progressive program — June 1 through mid-November. Three phases: rebuild, strengthen, explode.</p>
 </div>
 
@@ -227,625 +265,665 @@ a:hover{color:#7cc0ec}
 </div>
 
 <script>
-// ─── PROGRAM DATA ───
+// ─── EXERCISE LIBRARY ───
+// Centralized so we only define each exercise once (URL, skiNote, tracks).
+// Video IDs hand-picked from trusted fitness channels: Squat University,
+// Athlean-X, Jeff Nippard, Scott Herman, Bodybuilding.com, etc.
+// Time-per-rep/set estimates used for automatic duration calculation.
+const EX = {
+  gobletSquat: { name:"Goblet Squat", yt:"MeIiIdhvXT4", skiNote:"Quad dominance mirrors the flexed-knee stance skiing demands" },
+  gobletSquatSlow: { name:"Goblet Squat (3s eccentric)", yt:"MeIiIdhvXT4", skiNote:"Slow eccentrics build the exact braking strength your quads need in moguls" },
+  gluteBridge: { name:"Glute Bridge", yt:"8bbE64NuDTU", skiNote:"Hip extension powers you out of tuck and absorbs terrain changes" },
+  sLegGluteBridge: { name:"Single-Leg Glute Bridge", yt:"1vSapoPEqVg" },
+  reverseLunge: { name:"Bodyweight Reverse Lunge", yt:"xrPteyQLGAo", skiNote:"Single-leg stability is how you hold an edge through variable snow" },
+  reverseLungeDB: { name:"Reverse Lunge (DB)", yt:"xrPteyQLGAo" },
+  deadBug: { name:"Dead Bug", yt:"g_BYB0R-4Ws", skiNote:"Anti-extension core control keeps your torso quiet while legs work underneath" },
+  deadBugSlow: { name:"Dead Bug (slow tempo)", yt:"g_BYB0R-4Ws" },
+  deadBugWt: { name:"Dead Bug (weighted)", yt:"g_BYB0R-4Ws" },
+  clamshell: { name:"Banded Clamshell", yt:"KX8y_WpFEnA", skiNote:"Glute med activation prevents knee valgus collapse in turns" },
+  pushup: { name:"Push-up", yt:"IODxDxX7oi4" },
+  pushupHard: { name:"Push-up (add weight vest if easy)", yt:"IODxDxX7oi4" },
+  bandPullApart: { name:"Band Pull-Apart", yt:"FdrX_Bm7rPU", skiNote:"Rear delt & scap stability protects shoulders in falls and pole plants" },
+  dbRow: { name:"Dumbbell Row", yt:"roCP6wCXPqo" },
+  dbRowLight: { name:"DB Row (light)", yt:"roCP6wCXPqo" },
+  walk: { name:"Walk / Easy Bike", yt:"", skiNote:"Aerobic base directly supports sustained effort across long ski days" },
+  bwSquat: { name:"Bodyweight Squat", yt:"YaXPRqUwItQ" },
+  stepUp: { name:"Step-Up", yt:"dQqApCGd5Ag", skiNote:"Unilateral quad/glute strength for absorbing each turn's G-force" },
+  stepUpHigh: { name:"Step-Up (higher box)", yt:"dQqApCGd5Ag" },
+  stepUpHeavy: { name:"Step-Up (heavy)", yt:"dQqApCGd5Ag" },
+  hipAbd: { name:"Side-Lying Hip Abduction", yt:"jgh6sGwtTwk" },
+  plank: { name:"Plank Hold", yt:"pSHjTRCQxIw", skiNote:"Isometric core endurance — your trunk holds a brace every single run" },
+  plankWt: { name:"Plank (weighted)", yt:"pSHjTRCQxIw" },
+  hipStretch90: { name:"90/90 Hip Stretch", yt:"Fxdt8Fhlzv4", skiNote:"Hip mobility enables deeper flexion without compensating at the low back" },
+  dbRDL: { name:"Dumbbell RDL", yt:"FQrm5Ksu7RA", skiNote:"Posterior chain strength protects your knees from forward shear in ski boots" },
+  walkingLunge: { name:"Walking Lunge", yt:"L8fvypPHRoQ" },
+  walkingLungeBW: { name:"Walking Lunge (BW)", yt:"L8fvypPHRoQ" },
+  birdDog: { name:"Bird Dog", yt:"wiFNA3sqjCA", skiNote:"Contralateral stability pattern used in every carved turn" },
+  pallof: { name:"Pallof Press", yt:"AH_QZLm_0-s", skiNote:"Anti-rotation strength is THE core demand of skiing — resisting rotational forces every turn" },
+  pallofHeavy: { name:"Pallof Press (heavier band)", yt:"AH_QZLm_0-s" },
+  cycling: { name:"Cycling / Walk / Hike", yt:"" },
+  ankleMob: { name:"Ankle Dorsiflexion Mob", yt:"iIyp7gkRGg8", skiNote:"Ankle mobility dictates how deep you can flex into your boots without breaking at the waist" },
+  wgs: { name:"World's Greatest Stretch", yt:"hZ6MJUxm6TM" },
+  dbFloorPress: { name:"Dumbbell Floor Press", yt:"uUGDRwge4F8" },
+  dbOHP: { name:"Dumbbell Overhead Press", yt:"qEwKCR5JCog" },
+  bsplit: { name:"Bulgarian Split Squat", yt:"2C-uNgKwPLE", skiNote:"The king of ski-specific leg exercises — unilateral, quad-heavy, balance-demanding" },
+  bsplitHeavy: { name:"Bulgarian Split Squat (heavy)", yt:"2C-uNgKwPLE", skiNote:"Heavy single-leg = edge hold strength on hardpack and ice" },
+  bsplitFFE: { name:"Front Foot Elevated Split Squat", yt:"2C-uNgKwPLE" },
+  hipThrustDB: { name:"Hip Thrust (DB)", yt:"Zp26q4BY5HE" },
+  hipThrustBB: { name:"Hip Thrust (BB)", yt:"xDmFkJxPzeM" },
+  hipThrustHeavy: { name:"Hip Thrust (heavy)", yt:"xDmFkJxPzeM" },
+  calfRaise: { name:"Calf Raise", yt:"gwLzBJYoWlI", skiNote:"Calf endurance supports ankle pressure into ski boot tongues all day" },
+  sLegCalf: { name:"Single-Leg Calf Raise", yt:"3AWUV8sfiEs" },
+  sLegBalance: { name:"Single-Leg Balance Hold", yt:"fp6D7VHgFYU", skiNote:"Proprioception — your nervous system needs to react faster than you can think on the mountain" },
+  sLegBalanceEC: { name:"Single-Leg Balance (eyes closed)", yt:"fp6D7VHgFYU", skiNote:"Eyes-closed balance forces deep proprioceptive engagement — your body learns to react without visual cues" },
+  foamRoll: { name:"Foam Roll + Stretch", yt:"Ic7ty0Iq4xM" },
+  fullMob: { name:"Full Mobility Circuit", yt:"hZ6MJUxm6TM" },
+  backSquat: { name:"Barbell Back Squat", yt:"nhoikoUEI8U", skiNote:"The foundation — quad strength with full-body stabilization under load" },
+  backSquatSlow: { name:"Back Squat (3s eccentric)", yt:"nhoikoUEI8U", skiNote:"Tempo eccentrics at heavier loads build the braking strength for steep terrain" },
+  backSquatPause: { name:"Back Squat (pause at bottom)", yt:"nhoikoUEI8U", skiNote:"Pause squats build bottom-position strength — the deepest flex in turns" },
+  backSquat55: { name:"Back Squat — 5×5", yt:"nhoikoUEI8U", skiNote:"5×5 at heavy load builds maximal strength that underpins all ski performance" },
+  backSquatLight: { name:"Back Squat (light)", yt:"nhoikoUEI8U" },
+  bbRDL: { name:"Barbell RDL", yt:"_oyxCn2iSjU", skiNote:"Hamstring/glute strength balances the quad dominance and protects ACLs" },
+  bench: { name:"Barbell Bench Press", yt:"rT7DgCr-3pg" },
+  bbRow: { name:"Barbell Bent-Over Row", yt:"6gvmcqEpvtE" },
+  bbOHP: { name:"Overhead Press (BB)", yt:"_RlRDWO2jfg" },
+  facePull: { name:"Face Pull", yt:"0Po47vvj9g4" },
+  pullup: { name:"Pull-up", yt:"eGo4IYlbE5g" },
+  pullupWt: { name:"Weighted Pull-up", yt:"eGo4IYlbE5g" },
+  legPress: { name:"Leg Press", yt:"IZxyjW7MPJQ" },
+  legPressHigh: { name:"Leg Press (feet high)", yt:"IZxyjW7MPJQ", skiNote:"High foot placement shifts emphasis to glutes/hams — injury prevention for knees" },
+  legCurl: { name:"Leg Curl", yt:"F488k67BTNs" },
+  legExtSlow: { name:"Leg Extension (slow eccentric)", yt:"YyvSfVjQeL0", skiNote:"Isolated quad work builds endurance in the primary skiing muscle" },
+  sLegRDL: { name:"Single-Leg RDL (DB)", yt:"59pWqBqjfmw", skiNote:"Balance + hamstring strength on one leg — critical for variable terrain" },
+  sLegRDLHeavy: { name:"Single-Leg RDL (heavy DB)", yt:"59pWqBqjfmw" },
+  woodchop: { name:"Cable Woodchop", yt:"pAplQXk3dkU", skiNote:"Rotational power transfer — every carved turn transmits force diagonally through your trunk" },
+  woodchopFast: { name:"Cable Woodchop (fast)", yt:"pAplQXk3dkU" },
+  abWheel: { name:"Ab Wheel Rollout", yt:"rqiTPdK1c_I", skiNote:"Anti-extension under load — your trunk must resist folding on steep groomers" },
+  bikeInt: { name:"Bike Intervals", yt:"" },
+  stairInt: { name:"Stair / Hill Repeats", yt:"", skiNote:"Incline work builds quad endurance specific to sustained descents" },
+  hillSprints: { name:"Hill Sprints", yt:"" },
+  skierg: { name:"Ski Erg Intervals", yt:"TI4A5njDEqo", skiNote:"Ski erg is the closest cardio approximation to skiing's full-body demand" },
+  skiergHIIT: { name:"Ski Erg HIIT", yt:"TI4A5njDEqo" },
+  rowInt: { name:"Row Intervals", yt:"" },
+  boxJump: { name:"Box Jump (step down)", yt:"NBY9-kTuHEk", skiNote:"Explosive hip/knee extension — the burst you need initiating each turn" },
+  boxJumpHi: { name:"Single-Leg Box Jump", yt:"NBY9-kTuHEk", skiNote:"Single-leg explosive power for recovering from imbalanced landings" },
+  depthJump: { name:"Depth Jump", yt:"bMz1RDjrXJE", skiNote:"Reactive strength — landing and immediately exploding teaches fast absorption & redirection, like hitting a compression" },
+  depthToBox: { name:"Depth Jump to Box Jump", yt:"bMz1RDjrXJE" },
+  mbChest: { name:"Med Ball Chest Pass", yt:"Sn4bKpU8OTw", skiNote:"Upper body power transfer — pole plants and crash recovery" },
+  mbSlam: { name:"Med Ball Slam", yt:"dkp8QbPl3AE" },
+  mbOHSlam: { name:"Med Ball Overhead Slam", yt:"dkp8QbPl3AE" },
+  mbRot: { name:"Med Ball Rotational Slam", yt:"pPp2tRBF5QU", skiNote:"Explosive rotation — critical for mogul absorption and quick direction changes" },
+  skater: { name:"Skater Hop (stick landing)", yt:"8E0JgvJCZyU", skiNote:"THIS IS THE SKI EXERCISE — lateral single-leg power exactly mimics edge-to-edge transitions" },
+  skaterCont: { name:"Skater Hops (continuous)", yt:"8E0JgvJCZyU", skiNote:"Continuous lateral bounding simulates rhythmic turn-to-turn transitions" },
+  lateralBound: { name:"Lateral Bound (stick 2s)", yt:"8E0JgvJCZyU", skiNote:"Sticking the landing builds the eccentric landing control you need on every turn" },
+  lateralShuffle: { name:"Lateral Shuffle", yt:"G-D8wXlfZI0", skiNote:"Lateral conditioning trains the adductors and hip stabilizers for edge hold" },
+  lateralToSprint: { name:"Lateral Shuffle to Sprint", yt:"G-D8wXlfZI0" },
+  bosu: { name:"BOSU Single-Leg Hold", yt:"fp6D7VHgFYU", skiNote:"Unstable surface balance trains the fast-twitch proprioceptive responses skiing demands" },
+  bosuSquat: { name:"Single-Leg BOSU Squat", yt:"fp6D7VHgFYU" },
+  wallSit: { name:"Wall Sit", yt:"-cdph8hLOb8", skiNote:"Isometric quad endurance in the exact flexion angle of a ski tuck" },
+  tabata: { name:"Tabata Circuit: Jump Squat / Skater / Burpee / Plank", yt:"", skiNote:"High-intensity circuit mimics the repeated anaerobic bursts of aggressive skiing" },
+  tabataFinal: { name:"Tabata: Burpee / Skater / Jump Squat / Plank", yt:"" },
+  skiDay: { name:"Hit the mountain", yt:"", skiNote:"This is what you trained for. Send it." },
+};
+
+// ─── PROGRAM: each exercise line = {key, sets, rest, estMin, tracks}
+// estMin = estimated total time in minutes for this exercise block
 const PROGRAM = [
-// ═══════════════════════════════════════
-// PHASE 1: REBUILD THE BASE (Weeks 1-6)
-// ═══════════════════════════════════════
 {
   phase: 1, phaseTitle: "Phase 1 — Rebuild the Base", phaseColor: "#4fa8e0",
   phaseDesc: "Reconnect your body to movement. Rebuild work capacity, joint stability, and aerobic fitness. 3–4 training days per week.",
   weeks: [
-    {
-      week: 1, title: "Movement Patterns & Activation",
-      subtitle: "Light loads, learn the grooves",
+    { week:1, title:"Movement Patterns & Activation", subtitle:"Light loads, learn the grooves",
       days: [
-        { label: "Day 1 — Lower Body + Core", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×10", rest: "60s", skiNote: "Quad dominance mirrors the flexed-knee stance skiing demands", tracks: ["weight","reps"] },
-          { name: "Glute Bridge", url: "https://www.youtube.com/watch?v=OUgsJ8-Vi0E", sets: "3×12", rest: "45s", skiNote: "Hip extension powers you out of tuck and absorbs terrain changes", tracks: ["reps"] },
-          { name: "Bodyweight Reverse Lunge", url: "https://www.youtube.com/watch?v=xrPteyQLGAo", sets: "3×8 each leg", rest: "60s", skiNote: "Single-leg stability is how you hold an edge through variable snow", tracks: ["reps"] },
-          { name: "Dead Bug", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "3×8 each side", rest: "45s", skiNote: "Anti-extension core control keeps your torso quiet while legs work underneath", tracks: ["reps"] },
-          { name: "Banded Clamshell", url: "https://www.youtube.com/watch?v=cY3RnKb4Gfc", sets: "2×15 each", rest: "30s", skiNote: "Glute med activation prevents knee valgus collapse in turns", tracks: ["reps"] },
+        { label:"Day 1 — Lower Body + Core", exercises:[
+          { k:"gobletSquat", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"gluteBridge", sets:"3×12", rest:"45s", estMin:5, tracks:["reps"] },
+          { k:"reverseLunge", sets:"3×8 each leg", rest:"60s", estMin:8, tracks:["reps"] },
+          { k:"deadBug", sets:"3×8 each side", rest:"45s", estMin:5, tracks:["reps"] },
+          { k:"clamshell", sets:"2×15 each", rest:"30s", estMin:4, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper Body + Cardio", exercises: [
-          { name: "Push-up (or Incline Push-up)", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "3×8–12", rest: "60s", tracks: ["reps"] },
-          { name: "Band Pull-Apart", url: "https://www.youtube.com/watch?v=JObYtU7Y7ag", sets: "3×15", rest: "30s", skiNote: "Rear delt & scap stability protects shoulders in falls and pole plants", tracks: ["reps"] },
-          { name: "Dumbbell Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Walk / Easy Bike", url: "", sets: "20–30 min steady state", rest: "", skiNote: "Aerobic base directly supports sustained effort across long ski days", tracks: ["time","distance"] },
+        { label:"Day 2 — Upper Body + Cardio", exercises:[
+          { k:"pushup", sets:"3×8–12", rest:"60s", estMin:6, tracks:["reps"] },
+          { k:"bandPullApart", sets:"3×15", rest:"30s", estMin:4, tracks:["reps"] },
+          { k:"dbRow", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"walk", sets:"20–30 min steady state", rest:"", estMin:25, tracks:["time","distance"] },
         ]},
-        { label: "Day 3 — Lower Body + Mobility", exercises: [
-          { name: "Bodyweight Squat", url: "https://www.youtube.com/watch?v=aclHkVaku9U", sets: "3×15", rest: "45s", tracks: ["reps"] },
-          { name: "Step-Up (low box)", url: "https://www.youtube.com/watch?v=dQqApCGd5Ag", sets: "3×10 each leg", rest: "60s", skiNote: "Unilateral quad/glute strength for absorbing each turn's G-force", tracks: ["weight","reps"] },
-          { name: "Side-Lying Hip Abduction", url: "https://www.youtube.com/watch?v=jgh6sGwtTwk", sets: "2×15 each", rest: "30s", tracks: ["reps"] },
-          { name: "Plank Hold", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×20–30s", rest: "45s", skiNote: "Isometric core endurance — your trunk holds a brace every single run", tracks: ["time"] },
-          { name: "90/90 Hip Stretch", url: "https://www.youtube.com/watch?v=Fxdt8Fhlzv4", sets: "2×45s each side", rest: "", skiNote: "Hip mobility enables deeper flexion without compensating at the low back", tracks: ["time"] },
+        { label:"Day 3 — Lower Body + Mobility", exercises:[
+          { k:"bwSquat", sets:"3×15", rest:"45s", estMin:6, tracks:["reps"] },
+          { k:"stepUp", sets:"3×10 each leg", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"hipAbd", sets:"2×15 each", rest:"30s", estMin:4, tracks:["reps"] },
+          { k:"plank", sets:"3×20–30s", rest:"45s", estMin:4, tracks:["time"] },
+          { k:"hipStretch90", sets:"2×45s each side", rest:"", estMin:4, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 2, title: "Build Volume",
-      subtitle: "Add 1–2 reps per set or light weight where bodyweight was used",
+    { week:2, title:"Build Volume", subtitle:"Add 1–2 reps per set or light weight where bodyweight was used",
       days: [
-        { label: "Day 1 — Lower Body + Core", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×12", rest: "60s", skiNote: "Increasing volume builds muscular endurance for full-day skiing", tracks: ["weight","reps"] },
-          { name: "Romanian Deadlift (light DB)", url: "https://www.youtube.com/watch?v=XISJxsccN68", sets: "3×10", rest: "60s", skiNote: "Posterior chain strength protects your knees from forward shear in ski boots", tracks: ["weight","reps"] },
-          { name: "Walking Lunge", url: "https://www.youtube.com/watch?v=L8fvypPHRoQ", sets: "3×10 each leg", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Dead Bug", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
-          { name: "Bird Dog", url: "https://www.youtube.com/watch?v=wiFNA3sqjCA", sets: "3×8 each", rest: "45s", skiNote: "Contralateral stability pattern used in every carved turn", tracks: ["reps"] },
+        { label:"Day 1 — Lower Body + Core", exercises:[
+          { k:"gobletSquat", sets:"3×12", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"dbRDL", sets:"3×10 (light)", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"walkingLunge", sets:"3×10 each leg", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"deadBug", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
+          { k:"birdDog", sets:"3×8 each", rest:"45s", estMin:5, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper + Cardio", exercises: [
-          { name: "Push-up", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "3×10–15", rest: "60s", tracks: ["reps"] },
-          { name: "Dumbbell Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "3×12 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press (band)", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each side", rest: "45s", skiNote: "Anti-rotation strength is THE core demand of skiing — resisting rotational forces every turn", tracks: ["reps"] },
-          { name: "Cycling / Walk / Hike", url: "", sets: "25–35 min", rest: "", tracks: ["time","distance"] },
+        { label:"Day 2 — Upper + Cardio", exercises:[
+          { k:"pushup", sets:"3×10–15", rest:"60s", estMin:6, tracks:["reps"] },
+          { k:"dbRow", sets:"3×12 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each side", rest:"45s", estMin:6, tracks:["reps"] },
+          { k:"cycling", sets:"25–35 min", rest:"", estMin:30, tracks:["time","distance"] },
         ]},
-        { label: "Day 3 — Lower + Mobility", exercises: [
-          { name: "Goblet Squat (slow 3s eccentric)", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×10", rest: "75s", skiNote: "Slow eccentrics build the exact braking strength your quads need in moguls", tracks: ["weight","reps"] },
-          { name: "Single-Leg Glute Bridge", url: "https://www.youtube.com/watch?v=AVAXhy6pl7o", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
-          { name: "Step-Up", url: "https://www.youtube.com/watch?v=dQqApCGd5Ag", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Ankle Dorsiflexion Mob", url: "https://www.youtube.com/watch?v=IikP_teeLkI", sets: "2×30s each", rest: "", skiNote: "Ankle mobility dictates how deep you can flex into your boots without breaking at the waist", tracks: ["time"] },
-          { name: "World's Greatest Stretch", url: "https://www.youtube.com/watch?v=hZ6MJUxm6TM", sets: "2×5 each side", rest: "", tracks: ["reps"] },
+        { label:"Day 3 — Lower + Mobility", exercises:[
+          { k:"gobletSquatSlow", sets:"3×10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"sLegGluteBridge", sets:"3×10 each", rest:"45s", estMin:7, tracks:["reps"] },
+          { k:"stepUp", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"ankleMob", sets:"2×30s each", rest:"", estMin:3, tracks:["time"] },
+          { k:"wgs", sets:"2×5 each side", rest:"", estMin:4, tracks:["reps"] },
         ]},
       ]
     },
-    {
-      week: 3, title: "Introduce Load",
-      subtitle: "Add dumbbells where bodyweight was used; add a 4th day",
+    { week:3, title:"Introduce Load", subtitle:"Add dumbbells where bodyweight was used; add a 4th day",
       days: [
-        { label: "Day 1 — Lower Heavy", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "4×10", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Dumbbell RDL", url: "https://www.youtube.com/watch?v=XISJxsccN68", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Reverse Lunge (DB)", url: "https://www.youtube.com/watch?v=xrPteyQLGAo", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Plank", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×30–40s", rest: "45s", tracks: ["time"] },
+        { label:"Day 1 — Lower Heavy", exercises:[
+          { k:"gobletSquat", sets:"4×10", rest:"75s", estMin:10, tracks:["weight","reps"] },
+          { k:"dbRDL", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"reverseLungeDB", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"plank", sets:"3×30–40s", rest:"45s", estMin:4, tracks:["time"] },
         ]},
-        { label: "Day 2 — Upper Body", exercises: [
-          { name: "Dumbbell Floor Press", url: "https://www.youtube.com/watch?v=uUGDRwge4F8", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Dumbbell Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "3×12 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Dumbbell Overhead Press", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Band Pull-Apart", url: "https://www.youtube.com/watch?v=JObYtU7Y7ag", sets: "3×15", rest: "30s", tracks: ["reps"] },
+        { label:"Day 2 — Upper Body", exercises:[
+          { k:"dbFloorPress", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"dbRow", sets:"3×12 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"bandPullApart", sets:"3×15", rest:"30s", estMin:4, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Lower + Core", exercises: [
-          { name: "Bulgarian Split Squat (BW or light DB)", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "3×8 each", rest: "75s", skiNote: "The king of ski-specific leg exercises — unilateral, quad-heavy, balance-demanding", tracks: ["weight","reps"] },
-          { name: "Hip Thrust (DB)", url: "https://www.youtube.com/watch?v=Zp26q4BY5HE", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
-          { name: "Dead Bug (slow)", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 3 — Lower + Core", exercises:[
+          { k:"bsplit", sets:"3×8 each", rest:"75s", estMin:10, tracks:["weight","reps"] },
+          { k:"hipThrustDB", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
+          { k:"deadBugSlow", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Cardio + Mobility", exercises: [
-          { name: "Bike / Hike / Swim", url: "", sets: "30–40 min zone 2", rest: "", skiNote: "Zone 2 cardio builds the aerobic base for all-day skiing without blowing up your legs", tracks: ["time","distance"] },
-          { name: "Foam Roll + Stretch", url: "https://www.youtube.com/watch?v=SsT_go-yO8o", sets: "15 min", rest: "", tracks: ["time"] },
+        { label:"Day 4 — Cardio + Mobility", exercises:[
+          { k:"cycling", sets:"30–40 min zone 2", rest:"", estMin:35, tracks:["time","distance"] },
+          { k:"foamRoll", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 4, title: "Volume Peak",
-      subtitle: "Highest volume week of Phase 1 — push reps and sets up",
+    { week:4, title:"Volume Peak", subtitle:"Highest volume week of Phase 1 — push reps and sets up",
       days: [
-        { label: "Day 1 — Lower", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "4×12", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Dumbbell RDL", url: "https://www.youtube.com/watch?v=XISJxsccN68", sets: "4×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Walking Lunge (DB)", url: "https://www.youtube.com/watch?v=L8fvypPHRoQ", sets: "3×12 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Calf Raise", url: "https://www.youtube.com/watch?v=c5Kv6-fnTj0", sets: "3×15", rest: "30s", skiNote: "Calf endurance supports ankle pressure into ski boot tongues all day", tracks: ["weight","reps"] },
+        { label:"Day 1 — Lower", exercises:[
+          { k:"gobletSquat", sets:"4×12", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"dbRDL", sets:"4×10", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"walkingLunge", sets:"3×12 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"calfRaise", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Upper + Core", exercises: [
-          { name: "Push-up (add weight vest if easy)", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "4×12–15", rest: "60s", tracks: ["reps"] },
-          { name: "Dumbbell Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "4×12 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Overhead Press (DB)", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×12 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 2 — Upper + Core", exercises:[
+          { k:"pushupHard", sets:"4×12–15", rest:"60s", estMin:8, tracks:["reps"] },
+          { k:"dbRow", sets:"4×12 each", rest:"60s", estMin:12, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×12 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Lower + Balance", exercises: [
-          { name: "Bulgarian Split Squat (DB)", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "3×10 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=Zp26q4BY5HE", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Single-Leg Calf Raise", url: "https://www.youtube.com/watch?v=c5Kv6-fnTj0", sets: "3×12 each", rest: "30s", tracks: ["reps"] },
-          { name: "Single-Leg Balance Hold", url: "https://www.youtube.com/watch?v=fp6D7VHgFYU", sets: "3×30s each", rest: "", skiNote: "Proprioception — your nervous system needs to react faster than you can think on the mountain", tracks: ["time"] },
+        { label:"Day 3 — Lower + Balance", exercises:[
+          { k:"bsplit", sets:"3×10 each", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"hipThrustDB", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"sLegCalf", sets:"3×12 each", rest:"30s", estMin:6, tracks:["reps"] },
+          { k:"sLegBalance", sets:"3×30s each", rest:"", estMin:4, tracks:["time"] },
         ]},
-        { label: "Day 4 — Cardio", exercises: [
-          { name: "Bike / Hike / Row", url: "", sets: "35–45 min zone 2", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Cardio", exercises:[
+          { k:"cycling", sets:"35–45 min zone 2", rest:"", estMin:40, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 5, title: "Deload",
-      subtitle: "Reduce volume 40% — same movements, fewer sets, lighter weight",
+    { week:5, title:"Deload", subtitle:"Reduce volume 40% — same movements, fewer sets, lighter weight",
       days: [
-        { label: "Day 1 — Lower (Light)", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "2×10 (light)", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Reverse Lunge", url: "https://www.youtube.com/watch?v=xrPteyQLGAo", sets: "2×8 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Glute Bridge", url: "https://www.youtube.com/watch?v=OUgsJ8-Vi0E", sets: "2×12", rest: "45s", tracks: ["reps"] },
+        { label:"Day 1 — Lower (Light)", exercises:[
+          { k:"gobletSquat", sets:"2×10 (light)", rest:"60s", estMin:5, tracks:["weight","reps"] },
+          { k:"reverseLungeDB", sets:"2×8 each", rest:"60s", estMin:6, tracks:["weight","reps"] },
+          { k:"gluteBridge", sets:"2×12", rest:"45s", estMin:4, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper (Light)", exercises: [
-          { name: "Push-up", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "2×10", rest: "60s", tracks: ["reps"] },
-          { name: "Dumbbell Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "2×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Walk / Easy Bike", url: "", sets: "20 min", rest: "", tracks: ["time"] },
+        { label:"Day 2 — Upper (Light)", exercises:[
+          { k:"pushup", sets:"2×10", rest:"60s", estMin:4, tracks:["reps"] },
+          { k:"dbRow", sets:"2×10 each", rest:"60s", estMin:6, tracks:["weight","reps"] },
+          { k:"walk", sets:"20 min", rest:"", estMin:20, tracks:["time"] },
         ]},
-        { label: "Day 3 — Mobility Focus", exercises: [
-          { name: "90/90 Hip Stretch", url: "https://www.youtube.com/watch?v=Fxdt8Fhlzv4", sets: "3×60s each", rest: "", tracks: ["time"] },
-          { name: "World's Greatest Stretch", url: "https://www.youtube.com/watch?v=hZ6MJUxm6TM", sets: "3×5 each", rest: "", tracks: ["reps"] },
-          { name: "Ankle Mob", url: "https://www.youtube.com/watch?v=IikP_teeLkI", sets: "2×30s each", rest: "", tracks: ["time"] },
-          { name: "Foam Roll Full Body", url: "https://www.youtube.com/watch?v=SsT_go-yO8o", sets: "15 min", rest: "", tracks: ["time"] },
+        { label:"Day 3 — Mobility Focus", exercises:[
+          { k:"hipStretch90", sets:"3×60s each", rest:"", estMin:6, tracks:["time"] },
+          { k:"wgs", sets:"3×5 each", rest:"", estMin:5, tracks:["reps"] },
+          { k:"ankleMob", sets:"2×30s each", rest:"", estMin:3, tracks:["time"] },
+          { k:"foamRoll", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 6, title: "Ramp Back Up",
-      subtitle: "Re-establish loads from Week 4, test your readiness for Phase 2",
+    { week:6, title:"Ramp Back Up", subtitle:"Re-establish loads from Week 4, test your readiness for Phase 2",
       days: [
-        { label: "Day 1 — Lower", exercises: [
-          { name: "Goblet Squat (3s eccentric)", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "4×10", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Dumbbell RDL", url: "https://www.youtube.com/watch?v=XISJxsccN68", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "3×10 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Plank", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×40s", rest: "45s", tracks: ["time"] },
+        { label:"Day 1 — Lower", exercises:[
+          { k:"gobletSquatSlow", sets:"4×10", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"dbRDL", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"bsplit", sets:"3×10 each", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"plank", sets:"3×40s", rest:"45s", estMin:4, tracks:["time"] },
         ]},
-        { label: "Day 2 — Upper", exercises: [
-          { name: "DB Floor Press", url: "https://www.youtube.com/watch?v=uUGDRwge4F8", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "DB Row", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "3×12 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Overhead Press", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 2 — Upper", exercises:[
+          { k:"dbFloorPress", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"dbRow", sets:"3×12 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Lower + Core", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=Zp26q4BY5HE", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Step-Up (higher box)", url: "https://www.youtube.com/watch?v=dQqApCGd5Ag", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Dead Bug", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 3 — Lower + Core", exercises:[
+          { k:"gobletSquat", sets:"3×12", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"hipThrustDB", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"stepUpHigh", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"deadBug", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Cardio", exercises: [
-          { name: "Bike / Hike / Row", url: "", sets: "35–45 min zone 2", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Cardio", exercises:[
+          { k:"cycling", sets:"35–45 min zone 2", rest:"", estMin:40, tracks:["time","distance"] },
         ]},
       ]
     },
   ]
 },
-
-// ═══════════════════════════════════════
-// PHASE 2: STRENGTH (Weeks 7-16)
-// ═══════════════════════════════════════
 {
   phase: 2, phaseTitle: "Phase 2 — Build Strength", phaseColor: "#e8a04c",
   phaseDesc: "Barbell and heavy dumbbell work. Linear progression. 4 training days per week. Focus on eccentric control and heavy compound lifts.",
   weeks: [
-    {
-      week: 7, title: "Barbell Introduction",
-      subtitle: "Learn barbell patterns with moderate loads — form over weight",
+    { week:7, title:"Barbell Introduction", subtitle:"Learn barbell patterns with moderate loads — form over weight",
       days: [
-        { label: "Day 1 — Squat + Posterior", exercises: [
-          { name: "Barbell Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×8", rest: "90s", skiNote: "The foundation — quad strength with full-body stabilization under load", tracks: ["weight","reps"] },
-          { name: "Barbell RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "3×10", rest: "75s", skiNote: "Hamstring/glute strength balances the quad dominance and protects ACLs", tracks: ["weight","reps"] },
-          { name: "Walking Lunge (DB)", url: "https://www.youtube.com/watch?v=L8fvypPHRoQ", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 1 — Squat + Posterior", exercises:[
+          { k:"backSquat", sets:"4×8", rest:"90s", estMin:14, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"3×10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"walkingLunge", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper", exercises: [
-          { name: "Barbell Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Barbell Bent-Over Row", url: "https://www.youtube.com/watch?v=FWJR5Ve8bnQ", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Overhead Press (BB)", url: "https://www.youtube.com/watch?v=_RlRDWO2jfg", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Face Pull (cable or band)", url: "https://www.youtube.com/watch?v=rep-qVOkqgk", sets: "3×15", rest: "30s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper", exercises:[
+          { k:"bench", sets:"4×8", rest:"90s", estMin:13, tracks:["weight","reps"] },
+          { k:"bbRow", sets:"4×8", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"bbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"facePull", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Single-Leg + Core", exercises: [
-          { name: "Bulgarian Split Squat (DB heavy)", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", skiNote: "Heavy single-leg = edge hold strength on hardpack and ice", tracks: ["weight","reps"] },
-          { name: "Hip Thrust (BB)", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", skiNote: "Rotational power transfer — every carved turn transmits force diagonally through your trunk", tracks: ["weight","reps"] },
-          { name: "Single-Leg Calf Raise", url: "https://www.youtube.com/watch?v=c5Kv6-fnTj0", sets: "3×15 each", rest: "30s", tracks: ["reps"] },
+        { label:"Day 3 — Single-Leg + Core", exercises:[
+          { k:"bsplitHeavy", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
+          { k:"sLegCalf", sets:"3×15 each", rest:"30s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Bike Intervals", url: "", sets: "6×2 min hard / 2 min easy", rest: "", skiNote: "Interval capacity matches the run-by-run intensity pattern of a ski day", tracks: ["time"] },
-          { name: "Plank", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×45s", rest: "45s", tracks: ["time"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"bikeInt", sets:"6×2 min hard / 2 min easy", rest:"", estMin:28, tracks:["time"] },
+          { k:"plank", sets:"3×45s", rest:"45s", estMin:5, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 8, title: "Add Weight",
-      subtitle: "Add 5 lbs to each barbell lift from Week 7",
+    { week:8, title:"Add Weight", subtitle:"Add 5 lbs to each barbell lift from Week 7",
       days: [
-        { label: "Day 1 — Squat + Posterior", exercises: [
-          { name: "Back Squat (3s eccentric)", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×8", rest: "2 min", skiNote: "Tempo eccentrics at heavier loads build the braking strength for steep terrain", tracks: ["weight","reps"] },
-          { name: "Barbell RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "3×10", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Leg Press (if available)", url: "https://www.youtube.com/watch?v=IZxyjW7MPJQ", sets: "3×12", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Pallof Press (heavier band)", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 1 — Squat + Posterior", exercises:[
+          { k:"backSquatSlow", sets:"4×8", rest:"2 min", estMin:16, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"3×10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"legPress", sets:"3×12", rest:"75s", estMin:10, tracks:["weight","reps"] },
+          { k:"pallofHeavy", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Bent-Over Row", url: "https://www.youtube.com/watch?v=FWJR5Ve8bnQ", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Pull-up or Lat Pulldown", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "3×6–10", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Face Pull", url: "https://www.youtube.com/watch?v=rep-qVOkqgk", sets: "3×15", rest: "30s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper", exercises:[
+          { k:"bench", sets:"4×8", rest:"90s", estMin:13, tracks:["weight","reps"] },
+          { k:"bbRow", sets:"4×8", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"pullup", sets:"3×6–10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"facePull", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Single-Leg", exercises: [
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL (DB)", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×8 each", rest: "60s", skiNote: "Balance + hamstring strength on one leg — critical for variable terrain", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Single-Leg", exercises:[
+          { k:"bsplit", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"sLegRDL", sets:"3×8 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Stair / Hill Repeats", url: "", sets: "8×1 min hard / 1 min walk", rest: "", skiNote: "Incline work builds quad endurance specific to sustained descents", tracks: ["time"] },
-          { name: "Dead Bug (weighted)", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"stairInt", sets:"8×1 min hard / 1 min walk", rest:"", estMin:18, tracks:["time"] },
+          { k:"deadBugWt", sets:"3×10 each", rest:"45s", estMin:6, tracks:["weight","reps"] },
         ]},
       ]
     },
-    // Weeks 9-10: continue linear progression
-    {
-      week: 9, title: "Progressive Overload",
-      subtitle: "+5 lbs again on compounds — introduce pause reps",
+    { week:9, title:"Progressive Overload", subtitle:"+5 lbs again on compounds — introduce pause reps",
       days: [
-        { label: "Day 1 — Squat Focus", exercises: [
-          { name: "Back Squat (pause at bottom)", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×6", rest: "2 min", skiNote: "Pause squats build bottom-position strength — the deepest flex in turns", tracks: ["weight","reps"] },
-          { name: "Barbell RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Leg Curl", url: "https://www.youtube.com/watch?v=1Tq3QdYUuHs", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Ab Wheel Rollout", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×8", rest: "60s", skiNote: "Anti-extension under load — your trunk must resist folding on steep groomers", tracks: ["reps"] },
+        { label:"Day 1 — Squat Focus", exercises:[
+          { k:"backSquatPause", sets:"4×6", rest:"2 min", estMin:14, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"4×8", rest:"75s", estMin:12, tracks:["weight","reps"] },
+          { k:"legCurl", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"abWheel", sets:"3×8", rest:"60s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×6", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Weighted Pull-up or Pulldown", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×6–8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Overhead Press", url: "https://www.youtube.com/watch?v=_RlRDWO2jfg", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Band Pull-Apart", url: "https://www.youtube.com/watch?v=JObYtU7Y7ag", sets: "3×20", rest: "30s", tracks: ["reps"] },
+        { label:"Day 2 — Upper", exercises:[
+          { k:"bench", sets:"4×6", rest:"2 min", estMin:14, tracks:["weight","reps"] },
+          { k:"pullupWt", sets:"4×6–8", rest:"90s", estMin:12, tracks:["weight","reps"] },
+          { k:"bbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"bandPullApart", sets:"3×20", rest:"30s", estMin:5, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Single-Leg + Core", exercises: [
-          { name: "Front Foot Elevated Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×8 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Single-Leg + Core", exercises:[
+          { k:"bsplitFFE", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"sLegRDL", sets:"3×8 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Ski Erg or Row Intervals", url: "https://www.youtube.com/watch?v=TI4A5njDEqo", sets: "5×3 min / 2 min rest", rest: "", skiNote: "Ski erg is the closest cardio approximation to skiing's full-body demand", tracks: ["time","distance"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"skierg", sets:"5×3 min / 2 min rest", rest:"", estMin:25, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 10, title: "Strength Block Peak",
-      subtitle: "Heaviest week yet — push your 6-rep maxes",
+    { week:10, title:"Strength Block Peak", subtitle:"Heaviest week yet — push your 6-rep maxes",
       days: [
-        { label: "Day 1 — Heavy Squat", exercises: [
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "5×5", rest: "2.5 min", skiNote: "5×5 at heavy load builds maximal strength that underpins all ski performance", tracks: ["weight","reps"] },
-          { name: "Barbell RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Leg Extension (slow)", url: "https://www.youtube.com/watch?v=YyvSfVjQeL0", sets: "3×12", rest: "60s", skiNote: "Isolated quad work builds endurance in the primary skiing muscle", tracks: ["weight","reps"] },
+        { label:"Day 1 — Heavy Squat", exercises:[
+          { k:"backSquat55", sets:"5×5", rest:"2.5 min", estMin:20, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"4×8", rest:"75s", estMin:12, tracks:["weight","reps"] },
+          { k:"legExtSlow", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Heavy Upper", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "5×5", rest: "2.5 min", tracks: ["weight","reps"] },
-          { name: "Weighted Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×5–6", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "DB Overhead Press", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Heavy Upper", exercises:[
+          { k:"bench", sets:"5×5", rest:"2.5 min", estMin:18, tracks:["weight","reps"] },
+          { k:"pullupWt", sets:"4×5–6", rest:"2 min", estMin:12, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Heavy Single-Leg", exercises: [
-          { name: "Bulgarian Split Squat (heavy)", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×6 each", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Barbell Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Ab Wheel", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×10", rest: "60s", tracks: ["reps"] },
-          { name: "Pallof Press (heavy)", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 3 — Heavy Single-Leg", exercises:[
+          { k:"bsplitHeavy", sets:"4×6 each", rest:"90s", estMin:14, tracks:["weight","reps"] },
+          { k:"hipThrustHeavy", sets:"4×8", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"abWheel", sets:"3×10", rest:"60s", estMin:6, tracks:["reps"] },
+          { k:"pallofHeavy", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Hill Sprints or Stair Intervals", url: "", sets: "10×30s sprint / 90s walk", rest: "", tracks: ["time"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"hillSprints", sets:"10×30s sprint / 90s walk", rest:"", estMin:22, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 11, title: "Deload",
-      subtitle: "Recover and consolidate — 60% of last week's loads",
+    { week:11, title:"Deload", subtitle:"Recover and consolidate — 60% of last week's loads",
       days: [
-        { label: "Day 1 — Light Squat + Mobility", exercises: [
-          { name: "Back Squat (light)", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "3×8 (60%)", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "2×12", rest: "60s", tracks: ["weight","reps"] },
-          { name: "90/90 Hip Stretch", url: "https://www.youtube.com/watch?v=Fxdt8Fhlzv4", sets: "3×60s each", rest: "", tracks: ["time"] },
+        { label:"Day 1 — Light Squat + Mobility", exercises:[
+          { k:"backSquatLight", sets:"3×8 (60%)", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"gobletSquat", sets:"2×12", rest:"60s", estMin:5, tracks:["weight","reps"] },
+          { k:"hipStretch90", sets:"3×60s each", rest:"", estMin:6, tracks:["time"] },
         ]},
-        { label: "Day 2 — Light Upper", exercises: [
-          { name: "Push-up", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "3×15", rest: "60s", tracks: ["reps"] },
-          { name: "DB Row (light)", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "3×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Band Pull-Apart", url: "https://www.youtube.com/watch?v=JObYtU7Y7ag", sets: "3×20", rest: "30s", tracks: ["reps"] },
+        { label:"Day 2 — Light Upper", exercises:[
+          { k:"pushup", sets:"3×15", rest:"60s", estMin:7, tracks:["reps"] },
+          { k:"dbRowLight", sets:"3×10 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"bandPullApart", sets:"3×20", rest:"30s", estMin:5, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Easy Cardio + Stretch", exercises: [
-          { name: "Walk / Easy Bike", url: "", sets: "30 min zone 1", rest: "", tracks: ["time","distance"] },
-          { name: "Full Body Foam Roll", url: "https://www.youtube.com/watch?v=SsT_go-yO8o", sets: "15 min", rest: "", tracks: ["time"] },
+        { label:"Day 3 — Easy Cardio + Stretch", exercises:[
+          { k:"walk", sets:"30 min zone 1", rest:"", estMin:30, tracks:["time","distance"] },
+          { k:"foamRoll", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
         ]},
       ]
     },
-    // Weeks 12-16: second strength block
-    {
-      week: 12, title: "Strength Block 2 — Ramp",
-      subtitle: "Back to heavy work — start near Week 9 loads, fresh legs",
+    { week:12, title:"Strength Block 2 — Ramp", subtitle:"Back to heavy work — start near Week 9 loads, fresh legs",
       days: [
-        { label: "Day 1 — Squat + Posterior", exercises: [
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×6", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Barbell RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Leg Press (feet high)", url: "https://www.youtube.com/watch?v=IZxyjW7MPJQ", sets: "3×10", rest: "75s", skiNote: "High foot placement shifts emphasis to glutes/hams — injury prevention for knees", tracks: ["weight","reps"] },
-          { name: "Plank (weighted)", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×45s", rest: "45s", tracks: ["weight","time"] },
+        { label:"Day 1 — Squat + Posterior", exercises:[
+          { k:"backSquat", sets:"4×6", rest:"2 min", estMin:14, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"4×8", rest:"75s", estMin:12, tracks:["weight","reps"] },
+          { k:"legPressHigh", sets:"3×10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"plankWt", sets:"3×45s", rest:"45s", estMin:5, tracks:["weight","time"] },
         ]},
-        { label: "Day 2 — Upper", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×6", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up / Pulldown", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×6–8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "DB Overhead Press", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Face Pull", url: "https://www.youtube.com/watch?v=rep-qVOkqgk", sets: "3×15", rest: "30s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper", exercises:[
+          { k:"bench", sets:"4×6", rest:"2 min", estMin:14, tracks:["weight","reps"] },
+          { k:"pullup", sets:"4×6–8", rest:"90s", estMin:12, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"facePull", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Single-Leg + Core", exercises: [
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×8 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
-          { name: "Ab Wheel", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×10", rest: "60s", tracks: ["reps"] },
+        { label:"Day 3 — Single-Leg + Core", exercises:[
+          { k:"bsplit", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"sLegRDL", sets:"3×8 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
+          { k:"abWheel", sets:"3×10", rest:"60s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Ski Erg / Bike Intervals", url: "", sets: "6×2 min / 2 min rest", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"skierg", sets:"6×2 min / 2 min rest", rest:"", estMin:25, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 13, title: "Push the Compounds",
-      subtitle: "+5 lbs on all barbell lifts, maintain form",
+    { week:13, title:"Push the Compounds", subtitle:"+5 lbs on all barbell lifts, maintain form",
       days: [
-        { label: "Day 1 — Heavy Squat", exercises: [
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "5×5", rest: "2.5 min", tracks: ["weight","reps"] },
-          { name: "RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Leg Curl", url: "https://www.youtube.com/watch?v=1Tq3QdYUuHs", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Heavy Squat", exercises:[
+          { k:"backSquat55", sets:"5×5", rest:"2.5 min", estMin:20, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"4×8", rest:"75s", estMin:12, tracks:["weight","reps"] },
+          { k:"legCurl", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Heavy Upper", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "5×5", rest: "2.5 min", tracks: ["weight","reps"] },
-          { name: "Weighted Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Overhead Press", url: "https://www.youtube.com/watch?v=_RlRDWO2jfg", sets: "3×6", rest: "90s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Heavy Upper", exercises:[
+          { k:"bench", sets:"5×5", rest:"2.5 min", estMin:18, tracks:["weight","reps"] },
+          { k:"pullupWt", sets:"4×5", rest:"2 min", estMin:12, tracks:["weight","reps"] },
+          { k:"bbOHP", sets:"3×6", rest:"90s", estMin:10, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Volume Single-Leg", exercises: [
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust (heavy)", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×12 each", rest: "45s", tracks: ["reps"] },
-          { name: "Calf Raise", url: "https://www.youtube.com/watch?v=c5Kv6-fnTj0", sets: "3×15", rest: "30s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Volume Single-Leg", exercises:[
+          { k:"bsplit", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"hipThrustHeavy", sets:"4×8", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×12 each", rest:"45s", estMin:6, tracks:["reps"] },
+          { k:"calfRaise", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Row or Bike Intervals", url: "", sets: "8×1 min hard / 1 min easy", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"rowInt", sets:"8×1 min hard / 1 min easy", rest:"", estMin:18, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 14, title: "Intensity Peak",
-      subtitle: "Work up to new personal bests on squat and deadlift",
+    { week:14, title:"Intensity Peak", subtitle:"Work up to new personal bests on squat and deadlift",
       days: [
-        { label: "Day 1 — Max Effort Lower", exercises: [
-          { name: "Back Squat — work to heavy triple", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "Ramp to 3RM, then 2×5 at 80%", rest: "3 min", tracks: ["weight","reps"] },
-          { name: "RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "4×6", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Leg Extension (slow eccentric)", url: "https://www.youtube.com/watch?v=YyvSfVjQeL0", sets: "3×12", rest: "60s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Max Effort Lower", exercises:[
+          { k:"backSquat", sets:"Ramp to 3RM, then 2×5 at 80%", rest:"3 min", estMin:25, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"4×6", rest:"90s", estMin:11, tracks:["weight","reps"] },
+          { k:"legExtSlow", sets:"3×12", rest:"60s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Max Effort Upper", exercises: [
-          { name: "Bench — work to heavy triple", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "Ramp to 3RM, then 2×5 at 80%", rest: "3 min", tracks: ["weight","reps"] },
-          { name: "Pull-up (weighted)", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×4–5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "DB Overhead Press", url: "https://www.youtube.com/watch?v=qEwKCR5JCog", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Max Effort Upper", exercises:[
+          { k:"bench", sets:"Ramp to 3RM, then 2×5 at 80%", rest:"3 min", estMin:25, tracks:["weight","reps"] },
+          { k:"pullupWt", sets:"4×4–5", rest:"2 min", estMin:12, tracks:["weight","reps"] },
+          { k:"dbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Heavy Single-Leg", exercises: [
-          { name: "Bulgarian Split Squat (heavy)", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×6 each", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL (heavy DB)", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×6 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "4×8", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Ab Wheel", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×12", rest: "60s", tracks: ["reps"] },
+        { label:"Day 3 — Heavy Single-Leg", exercises:[
+          { k:"bsplitHeavy", sets:"4×6 each", rest:"90s", estMin:14, tracks:["weight","reps"] },
+          { k:"sLegRDLHeavy", sets:"3×6 each", rest:"75s", estMin:10, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"4×8", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"abWheel", sets:"3×12", rest:"60s", estMin:7, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Hill Sprints", url: "", sets: "10×30s / 90s rest", rest: "", tracks: ["time"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"hillSprints", sets:"10×30s / 90s rest", rest:"", estMin:22, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 15, title: "Volume Back-Off",
-      subtitle: "Reduce intensity 10%, keep volume — prep for next peak",
+    { week:15, title:"Volume Back-Off", subtitle:"Reduce intensity 10%, keep volume — prep for next peak",
       days: [
-        { label: "Day 1 — Squat", exercises: [
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×8 (90% of W14)", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "3×10", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Step-Up (heavy)", url: "https://www.youtube.com/watch?v=dQqApCGd5Ag", sets: "3×8 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Plank (weighted)", url: "https://www.youtube.com/watch?v=pvIjsG5Svck", sets: "3×45s", rest: "45s", tracks: ["weight","time"] },
+        { label:"Day 1 — Squat", exercises:[
+          { k:"backSquat", sets:"4×8 (90% of W14)", rest:"2 min", estMin:16, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"3×10", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"stepUpHeavy", sets:"3×8 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"plankWt", sets:"3×45s", rest:"45s", estMin:5, tracks:["weight","time"] },
         ]},
-        { label: "Day 2 — Upper Volume", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Pull-up / Pulldown", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Overhead Press", url: "https://www.youtube.com/watch?v=_RlRDWO2jfg", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Face Pull", url: "https://www.youtube.com/watch?v=rep-qVOkqgk", sets: "3×15", rest: "30s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper Volume", exercises:[
+          { k:"bench", sets:"4×8", rest:"90s", estMin:13, tracks:["weight","reps"] },
+          { k:"pullup", sets:"4×8", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"bbOHP", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"facePull", sets:"3×15", rest:"30s", estMin:5, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Single-Leg", exercises: [
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Single-Leg", exercises:[
+          { k:"bsplit", sets:"4×8 each", rest:"75s", estMin:14, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Ski Erg / Row", url: "", sets: "5×3 min / 2 min rest", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"skierg", sets:"5×3 min / 2 min rest", rest:"", estMin:25, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 16, title: "Phase 2 Deload",
-      subtitle: "Active recovery — prepare your body for explosive Phase 3 work",
+    { week:16, title:"Phase 2 Deload", subtitle:"Active recovery — prepare your body for explosive Phase 3 work",
       days: [
-        { label: "Day 1 — Light Lower", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Walking Lunge (BW)", url: "https://www.youtube.com/watch?v=L8fvypPHRoQ", sets: "2×10 each", rest: "60s", tracks: ["reps"] },
-          { name: "Mobility circuit", url: "https://www.youtube.com/watch?v=hZ6MJUxm6TM", sets: "15 min", rest: "", tracks: ["time"] },
+        { label:"Day 1 — Light Lower", exercises:[
+          { k:"gobletSquat", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"walkingLungeBW", sets:"2×10 each", rest:"60s", estMin:6, tracks:["reps"] },
+          { k:"fullMob", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
         ]},
-        { label: "Day 2 — Light Upper + Walk", exercises: [
-          { name: "Push-up", url: "https://www.youtube.com/watch?v=IODxDxX7oi4", sets: "3×12", rest: "60s", tracks: ["reps"] },
-          { name: "DB Row (light)", url: "https://www.youtube.com/watch?v=roCP6wCXPqo", sets: "2×10 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Easy Walk / Hike", url: "", sets: "30 min", rest: "", tracks: ["time","distance"] },
+        { label:"Day 2 — Light Upper + Walk", exercises:[
+          { k:"pushup", sets:"3×12", rest:"60s", estMin:6, tracks:["reps"] },
+          { k:"dbRowLight", sets:"2×10 each", rest:"60s", estMin:6, tracks:["weight","reps"] },
+          { k:"walk", sets:"30 min", rest:"", estMin:30, tracks:["time","distance"] },
         ]},
       ]
     },
   ]
 },
-
-// ═══════════════════════════════════════
-// PHASE 3: POWER & SKI-SPECIFIC (Weeks 17-24)
-// ═══════════════════════════════════════
 {
   phase: 3, phaseTitle: "Phase 3 — Power & Ski-Specific", phaseColor: "#e05c5c",
   phaseDesc: "Convert strength into explosive, reactive power. Plyometrics, lateral agility, balance, and high-intensity conditioning. 4 days per week.",
   weeks: [
-    {
-      week: 17, title: "Introduce Plyometrics",
-      subtitle: "Low-volume power work alongside maintained strength",
+    { week:17, title:"Introduce Plyometrics", subtitle:"Low-volume power work alongside maintained strength",
       days: [
-        { label: "Day 1 — Strength + Power", exercises: [
-          { name: "Box Jump (step down)", url: "https://www.youtube.com/watch?v=52r_Ul5k03g", sets: "4×5", rest: "90s", skiNote: "Explosive hip/knee extension — the burst you need initiating each turn", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "RDL", url: "https://www.youtube.com/watch?v=_oyxCn2iSjU", sets: "3×8", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 1 — Strength + Power", exercises:[
+          { k:"boxJump", sets:"4×5", rest:"90s", estMin:10, tracks:["height","reps"] },
+          { k:"backSquat", sets:"4×5", rest:"2 min", estMin:13, tracks:["weight","reps"] },
+          { k:"bbRDL", sets:"3×8", rest:"75s", estMin:9, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper + Reactive Core", exercises: [
-          { name: "Med Ball Chest Pass", url: "https://www.youtube.com/watch?v=1DUMgq9hJ1E", sets: "3×8", rest: "60s", skiNote: "Upper body power transfer — pole plants and crash recovery", tracks: ["weight","reps"] },
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "4×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×5–8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Med Ball Rotational Slam", url: "https://www.youtube.com/watch?v=fKlzGdsJfOo", sets: "3×6 each", rest: "60s", skiNote: "Explosive rotation — critical for mogul absorption and quick direction changes", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper + Reactive Core", exercises:[
+          { k:"mbChest", sets:"3×8", rest:"60s", estMin:6, tracks:["weight","reps"] },
+          { k:"bench", sets:"4×5", rest:"2 min", estMin:13, tracks:["weight","reps"] },
+          { k:"pullup", sets:"4×5–8", rest:"90s", estMin:11, tracks:["weight","reps"] },
+          { k:"mbRot", sets:"3×6 each", rest:"60s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Lateral Power + Legs", exercises: [
-          { name: "Skater Hop (stick landing)", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "3×6 each", rest: "75s", skiNote: "THIS IS THE SKI EXERCISE — lateral single-leg power exactly mimics edge-to-edge transitions", tracks: ["reps"] },
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "4×6 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×8 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Cable Woodchop", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×10 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Lateral Power + Legs", exercises:[
+          { k:"skater", sets:"3×6 each", rest:"75s", estMin:9, tracks:["reps"] },
+          { k:"bsplit", sets:"4×6 each", rest:"75s", estMin:12, tracks:["weight","reps"] },
+          { k:"sLegRDL", sets:"3×8 each", rest:"60s", estMin:9, tracks:["weight","reps"] },
+          { k:"woodchop", sets:"3×10 each", rest:"45s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Ski Erg Intervals", url: "https://www.youtube.com/watch?v=TI4A5njDEqo", sets: "8×1 min hard / 1 min rest", rest: "", tracks: ["time","distance"] },
-          { name: "Lateral Shuffle", url: "https://www.youtube.com/watch?v=iUevTyRKvdg", sets: "4×30s", rest: "45s", skiNote: "Lateral conditioning trains the adductors and hip stabilizers for edge hold", tracks: ["time"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"skierg", sets:"8×1 min hard / 1 min rest", rest:"", estMin:18, tracks:["time","distance"] },
+          { k:"lateralShuffle", sets:"4×30s", rest:"45s", estMin:6, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 18, title: "Plyometric Volume Up",
-      subtitle: "More explosive reps, add depth jumps",
+    { week:18, title:"Plyometric Volume Up", subtitle:"More explosive reps, add depth jumps",
       days: [
-        { label: "Day 1 — Power + Squat", exercises: [
-          { name: "Depth Jump", url: "https://www.youtube.com/watch?v=bMz1RDjrXJE", sets: "4×4", rest: "2 min", skiNote: "Reactive strength — landing and immediately exploding teaches fast absorption & redirection, like hitting a compression", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "4×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Leg Curl", url: "https://www.youtube.com/watch?v=1Tq3QdYUuHs", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Power + Squat", exercises:[
+          { k:"depthJump", sets:"4×4", rest:"2 min", estMin:12, tracks:["height","reps"] },
+          { k:"backSquat", sets:"4×5", rest:"2 min", estMin:13, tracks:["weight","reps"] },
+          { k:"legCurl", sets:"3×10", rest:"60s", estMin:6, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Upper + Throws", exercises: [
-          { name: "Med Ball Slam", url: "https://www.youtube.com/watch?v=j3IGDI-IJLo", sets: "3×8", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "3×6", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "4×5–8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Overhead Press", url: "https://www.youtube.com/watch?v=_RlRDWO2jfg", sets: "3×6", rest: "75s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper + Throws", exercises:[
+          { k:"mbSlam", sets:"3×8", rest:"60s", estMin:6, tracks:["weight","reps"] },
+          { k:"bench", sets:"3×6", rest:"90s", estMin:9, tracks:["weight","reps"] },
+          { k:"pullup", sets:"4×5–8", rest:"90s", estMin:11, tracks:["weight","reps"] },
+          { k:"bbOHP", sets:"3×6", rest:"75s", estMin:8, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Lateral + Single-Leg", exercises: [
-          { name: "Lateral Bound (stick 2s)", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "4×6 each", rest: "75s", skiNote: "Sticking the landing builds the eccentric landing control you need on every turn", tracks: ["reps"] },
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "3×8 each", rest: "75s", tracks: ["weight","reps"] },
-          { name: "Hip Thrust", url: "https://www.youtube.com/watch?v=xDmFkJxPzeM", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Ab Wheel", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×10", rest: "60s", tracks: ["reps"] },
+        { label:"Day 3 — Lateral + Single-Leg", exercises:[
+          { k:"lateralBound", sets:"4×6 each", rest:"75s", estMin:11, tracks:["reps"] },
+          { k:"bsplit", sets:"3×8 each", rest:"75s", estMin:11, tracks:["weight","reps"] },
+          { k:"hipThrustBB", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"abWheel", sets:"3×10", rest:"60s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Agility Circuit", exercises: [
-          { name: "Lateral Shuffle", url: "https://www.youtube.com/watch?v=iUevTyRKvdg", sets: "4×30s", rest: "45s", tracks: ["time"] },
-          { name: "BOSU Single-Leg Hold", url: "https://www.youtube.com/watch?v=fp6D7VHgFYU", sets: "3×30s each", rest: "30s", skiNote: "Unstable surface balance trains the fast-twitch proprioceptive responses skiing demands", tracks: ["time"] },
-          { name: "Bike Sprints", url: "", sets: "6×30s / 90s rest", rest: "", tracks: ["time"] },
+        { label:"Day 4 — Agility Circuit", exercises:[
+          { k:"lateralShuffle", sets:"4×30s", rest:"45s", estMin:6, tracks:["time"] },
+          { k:"bosu", sets:"3×30s each", rest:"30s", estMin:5, tracks:["time"] },
+          { k:"bikeInt", sets:"6×30s / 90s rest", rest:"", estMin:14, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 19, title: "Reactive Strength",
-      subtitle: "Plyometrics with minimal ground contact time",
+    { week:19, title:"Reactive Strength", subtitle:"Plyometrics with minimal ground contact time",
       days: [
-        { label: "Day 1 — Reactive Lower", exercises: [
-          { name: "Depth Jump to Box Jump", url: "https://www.youtube.com/watch?v=bMz1RDjrXJE", sets: "4×4", rest: "2 min", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "3×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Single-Leg Box Jump", url: "https://www.youtube.com/watch?v=52r_Ul5k03g", sets: "3×4 each", rest: "90s", skiNote: "Single-leg explosive power for recovering from imbalanced landings", tracks: ["reps"] },
+        { label:"Day 1 — Reactive Lower", exercises:[
+          { k:"depthToBox", sets:"4×4", rest:"2 min", estMin:12, tracks:["height","reps"] },
+          { k:"backSquat", sets:"3×5", rest:"2 min", estMin:10, tracks:["weight","reps"] },
+          { k:"boxJumpHi", sets:"3×4 each", rest:"90s", estMin:10, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Upper Maintenance", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "3×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "3×6", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Med Ball Rotational Throw", url: "https://www.youtube.com/watch?v=fKlzGdsJfOo", sets: "3×6 each", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 2 — Upper Maintenance", exercises:[
+          { k:"bench", sets:"3×5", rest:"2 min", estMin:11, tracks:["weight","reps"] },
+          { k:"pullup", sets:"3×6", rest:"90s", estMin:8, tracks:["weight","reps"] },
+          { k:"mbRot", sets:"3×6 each", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Ski Simulation", exercises: [
-          { name: "Skater Hops (continuous)", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "4×20s", rest: "60s", skiNote: "Continuous lateral bounding simulates rhythmic turn-to-turn transitions", tracks: ["time"] },
-          { name: "Wall Sit", url: "https://www.youtube.com/watch?v=y-wV4Lk-15c", sets: "3×45–60s", rest: "60s", skiNote: "Isometric quad endurance in the exact flexion angle of a ski tuck", tracks: ["time"] },
-          { name: "Single-Leg BOSU Squat", url: "https://www.youtube.com/watch?v=fp6D7VHgFYU", sets: "3×8 each", rest: "60s", tracks: ["reps"] },
-          { name: "Cable Woodchop (fast)", url: "https://www.youtube.com/watch?v=pAplQXk3dkU", sets: "3×8 each", rest: "45s", tracks: ["weight","reps"] },
+        { label:"Day 3 — Ski Simulation", exercises:[
+          { k:"skaterCont", sets:"4×20s", rest:"60s", estMin:6, tracks:["time"] },
+          { k:"wallSit", sets:"3×45–60s", rest:"60s", estMin:6, tracks:["time"] },
+          { k:"bosuSquat", sets:"3×8 each", rest:"60s", estMin:8, tracks:["reps"] },
+          { k:"woodchopFast", sets:"3×8 each", rest:"45s", estMin:6, tracks:["weight","reps"] },
         ]},
-        { label: "Day 4 — HIIT", exercises: [
-          { name: "Tabata Circuit: Jump Squat / Skater / Burpee / Plank", url: "", sets: "4 rounds: 20s on / 10s off each", rest: "1 min between rounds", skiNote: "High-intensity circuit mimics the repeated anaerobic bursts of aggressive skiing", tracks: ["time"] },
+        { label:"Day 4 — HIIT", exercises:[
+          { k:"tabata", sets:"4 rounds: 20s on / 10s off each", rest:"1 min between rounds", estMin:20, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 20, title: "Deload",
-      subtitle: "Absorb all that plyometric work — active recovery",
+    { week:20, title:"Deload", subtitle:"Absorb all that plyometric work — active recovery",
       days: [
-        { label: "Day 1 — Light Lower", exercises: [
-          { name: "Goblet Squat", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "3×10", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Walking Lunge (BW)", url: "https://www.youtube.com/watch?v=L8fvypPHRoQ", sets: "2×10 each", rest: "60s", tracks: ["reps"] },
+        { label:"Day 1 — Light Lower", exercises:[
+          { k:"gobletSquat", sets:"3×10", rest:"60s", estMin:7, tracks:["weight","reps"] },
+          { k:"walkingLungeBW", sets:"2×10 each", rest:"60s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Easy Cardio + Mobility", exercises: [
-          { name: "Hike / Walk / Easy Bike", url: "", sets: "30–40 min", rest: "", tracks: ["time","distance"] },
-          { name: "Full Mobility Circuit", url: "https://www.youtube.com/watch?v=hZ6MJUxm6TM", sets: "15 min", rest: "", tracks: ["time"] },
+        { label:"Day 2 — Easy Cardio + Mobility", exercises:[
+          { k:"cycling", sets:"30–40 min", rest:"", estMin:35, tracks:["time","distance"] },
+          { k:"fullMob", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
         ]},
       ]
     },
-    // Weeks 21-24: final peaking block
-    {
-      week: 21, title: "Final Block — Power Maintenance",
-      subtitle: "Keep strength, maximize ski-specific explosiveness",
+    { week:21, title:"Final Block — Power Maintenance", subtitle:"Keep strength, maximize ski-specific explosiveness",
       days: [
-        { label: "Day 1 — Power + Squat", exercises: [
-          { name: "Box Jump", url: "https://www.youtube.com/watch?v=52r_Ul5k03g", sets: "4×5", rest: "90s", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "3×5 (heavy)", rest: "2.5 min", tracks: ["weight","reps"] },
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "3×6 each", rest: "75s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Power + Squat", exercises:[
+          { k:"boxJump", sets:"4×5", rest:"90s", estMin:10, tracks:["height","reps"] },
+          { k:"backSquat", sets:"3×5 (heavy)", rest:"2.5 min", estMin:13, tracks:["weight","reps"] },
+          { k:"bsplit", sets:"3×6 each", rest:"75s", estMin:10, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Upper + Core Power", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "3×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "3×5–8", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Med Ball Rotational Slam", url: "https://www.youtube.com/watch?v=fKlzGdsJfOo", sets: "3×6 each", rest: "60s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper + Core Power", exercises:[
+          { k:"bench", sets:"3×5", rest:"2 min", estMin:11, tracks:["weight","reps"] },
+          { k:"pullup", sets:"3×5–8", rest:"90s", estMin:9, tracks:["weight","reps"] },
+          { k:"mbRot", sets:"3×6 each", rest:"60s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Ski Simulation", exercises: [
-          { name: "Skater Hops (continuous 30s)", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "4×30s", rest: "60s", tracks: ["time"] },
-          { name: "Lateral Shuffle to Sprint", url: "https://www.youtube.com/watch?v=iUevTyRKvdg", sets: "4×20s", rest: "60s", tracks: ["time"] },
-          { name: "Wall Sit", url: "https://www.youtube.com/watch?v=y-wV4Lk-15c", sets: "3×60s", rest: "60s", tracks: ["time"] },
-          { name: "Single-Leg Balance (eyes closed)", url: "https://www.youtube.com/watch?v=fp6D7VHgFYU", sets: "3×30s each", rest: "30s", skiNote: "Eyes-closed balance forces deep proprioceptive engagement — your body learns to react without visual cues", tracks: ["time"] },
+        { label:"Day 3 — Ski Simulation", exercises:[
+          { k:"skaterCont", sets:"4×30s", rest:"60s", estMin:8, tracks:["time"] },
+          { k:"lateralToSprint", sets:"4×20s", rest:"60s", estMin:6, tracks:["time"] },
+          { k:"wallSit", sets:"3×60s", rest:"60s", estMin:6, tracks:["time"] },
+          { k:"sLegBalanceEC", sets:"3×30s each", rest:"30s", estMin:4, tracks:["time"] },
         ]},
-        { label: "Day 4 — Conditioning", exercises: [
-          { name: "Ski Erg HIIT", url: "https://www.youtube.com/watch?v=TI4A5njDEqo", sets: "10×30s max / 30s rest", rest: "", tracks: ["time","distance"] },
+        { label:"Day 4 — Conditioning", exercises:[
+          { k:"skiergHIIT", sets:"10×30s max / 30s rest", rest:"", estMin:12, tracks:["time","distance"] },
         ]},
       ]
     },
-    {
-      week: 22, title: "Peak Intensity",
-      subtitle: "Highest plyometric + conditioning volume — you're almost there",
+    { week:22, title:"Peak Intensity", subtitle:"Highest plyometric + conditioning volume — you're almost there",
       days: [
-        { label: "Day 1 — Max Power", exercises: [
-          { name: "Depth Jump", url: "https://www.youtube.com/watch?v=bMz1RDjrXJE", sets: "5×4", rest: "2 min", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "3×3 (heavy)", rest: "3 min", tracks: ["weight","reps"] },
-          { name: "Single-Leg RDL", url: "https://www.youtube.com/watch?v=59pWqBqjfmw", sets: "3×6 each", rest: "60s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Max Power", exercises:[
+          { k:"depthJump", sets:"5×4", rest:"2 min", estMin:14, tracks:["height","reps"] },
+          { k:"backSquat", sets:"3×3 (heavy)", rest:"3 min", estMin:14, tracks:["weight","reps"] },
+          { k:"sLegRDL", sets:"3×6 each", rest:"60s", estMin:8, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Upper + Throws", exercises: [
-          { name: "Med Ball Overhead Slam", url: "https://www.youtube.com/watch?v=j3IGDI-IJLo", sets: "4×8", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "3×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "3×5", rest: "90s", tracks: ["weight","reps"] },
+        { label:"Day 2 — Upper + Throws", exercises:[
+          { k:"mbOHSlam", sets:"4×8", rest:"60s", estMin:8, tracks:["weight","reps"] },
+          { k:"bench", sets:"3×5", rest:"2 min", estMin:11, tracks:["weight","reps"] },
+          { k:"pullup", sets:"3×5", rest:"90s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 3 — Full Ski Circuit", exercises: [
-          { name: "Skater Hops", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "4×30s", rest: "45s", tracks: ["time"] },
-          { name: "Box Jump", url: "https://www.youtube.com/watch?v=52r_Ul5k03g", sets: "3×5", rest: "60s", tracks: ["height","reps"] },
-          { name: "Wall Sit", url: "https://www.youtube.com/watch?v=y-wV4Lk-15c", sets: "3×60s", rest: "45s", tracks: ["time"] },
-          { name: "Lateral Shuffle", url: "https://www.youtube.com/watch?v=iUevTyRKvdg", sets: "4×30s", rest: "45s", tracks: ["time"] },
-          { name: "Ab Wheel", url: "https://www.youtube.com/watch?v=uYBOBBv9GzY", sets: "3×12", rest: "45s", tracks: ["reps"] },
+        { label:"Day 3 — Full Ski Circuit", exercises:[
+          { k:"skater", sets:"4×30s", rest:"45s", estMin:7, tracks:["time"] },
+          { k:"boxJump", sets:"3×5", rest:"60s", estMin:6, tracks:["height","reps"] },
+          { k:"wallSit", sets:"3×60s", rest:"45s", estMin:6, tracks:["time"] },
+          { k:"lateralShuffle", sets:"4×30s", rest:"45s", estMin:6, tracks:["time"] },
+          { k:"abWheel", sets:"3×12", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 4 — Final HIIT", exercises: [
-          { name: "Tabata: Burpee / Skater / Jump Squat / Plank", url: "", sets: "5 rounds: 20s on / 10s off", rest: "1 min between rounds", tracks: ["time"] },
+        { label:"Day 4 — Final HIIT", exercises:[
+          { k:"tabataFinal", sets:"5 rounds: 20s on / 10s off", rest:"1 min between rounds", estMin:25, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 23, title: "Taper Begins",
-      subtitle: "Reduce volume 30%, maintain intensity — let your body supercompensate",
+    { week:23, title:"Taper Begins", subtitle:"Reduce volume 30%, maintain intensity — let your body supercompensate",
       days: [
-        { label: "Day 1 — Power (reduced)", exercises: [
-          { name: "Box Jump", url: "https://www.youtube.com/watch?v=52r_Ul5k03g", sets: "3×4", rest: "90s", tracks: ["height","reps"] },
-          { name: "Back Squat", url: "https://www.youtube.com/watch?v=bEv6CCg2BC8", sets: "3×3 (same weight as W22)", rest: "2.5 min", tracks: ["weight","reps"] },
-          { name: "Bulgarian Split Squat", url: "https://www.youtube.com/watch?v=2C-uNgKwPLE", sets: "2×6 each", rest: "75s", tracks: ["weight","reps"] },
+        { label:"Day 1 — Power (reduced)", exercises:[
+          { k:"boxJump", sets:"3×4", rest:"90s", estMin:8, tracks:["height","reps"] },
+          { k:"backSquat", sets:"3×3 (same weight as W22)", rest:"2.5 min", estMin:12, tracks:["weight","reps"] },
+          { k:"bsplit", sets:"2×6 each", rest:"75s", estMin:7, tracks:["weight","reps"] },
         ]},
-        { label: "Day 2 — Upper (reduced)", exercises: [
-          { name: "Bench Press", url: "https://www.youtube.com/watch?v=rT7DgCr-3pg", sets: "3×5", rest: "2 min", tracks: ["weight","reps"] },
-          { name: "Pull-up", url: "https://www.youtube.com/watch?v=eGo4IYlbE5g", sets: "3×5", rest: "90s", tracks: ["weight","reps"] },
-          { name: "Pallof Press", url: "https://www.youtube.com/watch?v=AH_QZLm_0-s", sets: "3×10 each", rest: "45s", tracks: ["reps"] },
+        { label:"Day 2 — Upper (reduced)", exercises:[
+          { k:"bench", sets:"3×5", rest:"2 min", estMin:11, tracks:["weight","reps"] },
+          { k:"pullup", sets:"3×5", rest:"90s", estMin:7, tracks:["weight","reps"] },
+          { k:"pallof", sets:"3×10 each", rest:"45s", estMin:6, tracks:["reps"] },
         ]},
-        { label: "Day 3 — Light Ski Sim", exercises: [
-          { name: "Skater Hops", url: "https://www.youtube.com/watch?v=XhW5sPrMedU", sets: "3×20s", rest: "60s", tracks: ["time"] },
-          { name: "Wall Sit", url: "https://www.youtube.com/watch?v=y-wV4Lk-15c", sets: "2×45s", rest: "60s", tracks: ["time"] },
-          { name: "Single-Leg Balance", url: "https://www.youtube.com/watch?v=fp6D7VHgFYU", sets: "2×30s each", rest: "30s", tracks: ["time"] },
+        { label:"Day 3 — Light Ski Sim", exercises:[
+          { k:"skaterCont", sets:"3×20s", rest:"60s", estMin:5, tracks:["time"] },
+          { k:"wallSit", sets:"2×45s", rest:"60s", estMin:4, tracks:["time"] },
+          { k:"sLegBalance", sets:"2×30s each", rest:"30s", estMin:3, tracks:["time"] },
         ]},
       ]
     },
-    {
-      week: 24, title: "Race Week — Peak & Ski!",
-      subtitle: "Minimal training — stay loose, stay sharp, hit the mountain",
+    { week:24, title:"Race Week — Peak & Ski!", subtitle:"Minimal training — stay loose, stay sharp, hit the mountain",
       days: [
-        { label: "Day 1 — Activation Only", exercises: [
-          { name: "Goblet Squat (light)", url: "https://www.youtube.com/watch?v=MeIiIdhvXT4", sets: "2×8", rest: "60s", tracks: ["weight","reps"] },
-          { name: "Glute Bridge", url: "https://www.youtube.com/watch?v=OUgsJ8-Vi0E", sets: "2×12", rest: "30s", tracks: ["reps"] },
-          { name: "Band Pull-Apart", url: "https://www.youtube.com/watch?v=JObYtU7Y7ag", sets: "2×15", rest: "30s", tracks: ["reps"] },
-          { name: "Dead Bug", url: "https://www.youtube.com/watch?v=I5xbsA71v1A", sets: "2×8 each", rest: "30s", tracks: ["reps"] },
+        { label:"Day 1 — Activation Only", exercises:[
+          { k:"gobletSquat", sets:"2×8 (light)", rest:"60s", estMin:4, tracks:["weight","reps"] },
+          { k:"gluteBridge", sets:"2×12", rest:"30s", estMin:3, tracks:["reps"] },
+          { k:"bandPullApart", sets:"2×15", rest:"30s", estMin:3, tracks:["reps"] },
+          { k:"deadBug", sets:"2×8 each", rest:"30s", estMin:3, tracks:["reps"] },
         ]},
-        { label: "Day 2 — Mobility + Light Cardio", exercises: [
-          { name: "Full Mobility Circuit", url: "https://www.youtube.com/watch?v=hZ6MJUxm6TM", sets: "15 min", rest: "", tracks: ["time"] },
-          { name: "Easy Walk", url: "", sets: "20 min", rest: "", tracks: ["time"] },
+        { label:"Day 2 — Mobility + Light Cardio", exercises:[
+          { k:"fullMob", sets:"15 min", rest:"", estMin:15, tracks:["time"] },
+          { k:"walk", sets:"20 min", rest:"", estMin:20, tracks:["time"] },
         ]},
-        { label: "Day 3 — SKI DAY! 🎿", exercises: [
-          { name: "Hit the mountain", url: "", sets: "All day", rest: "Chairlift", skiNote: "This is what you trained for. Send it.", tracks: ["time"] },
+        { label:"Day 3 — SKI DAY! 🎿", exercises:[
+          { k:"skiDay", sets:"All day", rest:"Chairlift", estMin:480, tracks:["time"] },
         ]},
       ]
     },
@@ -853,8 +931,25 @@ const PROGRAM = [
 },
 ];
 
+// ─── DATE COMPUTATION ───
+// Program starts June 1, 2026 (or current year if already past).
+const START = new Date(2026, 5, 1); // June 1, 2026 — Month is 0-indexed
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function weekDateRange(weekIdx) {
+  const start = new Date(START);
+  start.setDate(start.getDate() + weekIdx * 7);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const startStr = `${MONTHS[start.getMonth()]} ${start.getDate()}`;
+  const endStr = (start.getMonth() === end.getMonth())
+    ? `${end.getDate()}`
+    : `${MONTHS[end.getMonth()]} ${end.getDate()}`;
+  return `${startStr}–${endStr}`;
+}
+
 // ─── STATE MANAGEMENT ───
-const STATE_KEY = 'summit-training-v1';
+const STATE_KEY = 'bigdaddy-ski-v2';
 
 function loadState() {
   try {
@@ -863,23 +958,21 @@ function loadState() {
   } catch { return {}; }
 }
 
-function saveState(state) {
-  try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch {}
+function saveState(s) {
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch {}
 }
 
-function getExKey(weekIdx, dayIdx, exIdx) { return `ex-${weekIdx}-${dayIdx}-${exIdx}`; }
-function getTrackKey(weekIdx, dayIdx, exIdx, trackIdx) { return `tr-${weekIdx}-${dayIdx}-${exIdx}-${trackIdx}`; }
-function getWeekDoneKey(weekIdx) { return `wk-${weekIdx}`; }
-function getNotesKey(weekIdx) { return `notes-${weekIdx}`; }
-function getOpenKey() { return 'openWeek'; }
+const keyEx = (w,d,e) => `ex-${w}-${d}-${e}`;
+const keyTr = (w,d,e,t) => `tr-${w}-${d}-${e}-${t}`;
+const keyWk = (w) => `wk-${w}`;
+const keyNotes = (w) => `notes-${w}`;
+const keyOpen = () => 'openWeek';
 
 let state = loadState();
 
-// ─── COMPUTE CURRENT WEEK ───
 function getCurrentWeek() {
-  const start = new Date(2026, 5, 1); // June 1, 2026
   const now = new Date();
-  const diff = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+  const diff = Math.floor((now - START) / (7 * 24 * 60 * 60 * 1000));
   return Math.max(0, Math.min(23, diff));
 }
 
@@ -888,50 +981,78 @@ function render() {
   const app = document.getElementById('app');
   const currentWeek = getCurrentWeek();
   let html = '';
-  let weekGlobalIdx = 0;
+  let wIdx = 0;
 
   PROGRAM.forEach(phase => {
     html += `<div class="phase-header">
       <div class="phase-label"><span class="phase-dot" style="background:${phase.phaseColor}"></span>${phase.phaseTitle}</div>
       <div class="phase-desc">${phase.phaseDesc}</div>
-    </div>`;
-    html += `<div class="weeks-container">`;
+    </div><div class="weeks-container">`;
 
     phase.weeks.forEach(week => {
-      const wi = weekGlobalIdx;
-      const isDone = state[getWeekDoneKey(wi)];
-      const isOpen = state[getOpenKey()] === wi || (state[getOpenKey()] === undefined && wi === currentWeek);
+      const wi = wIdx;
+      const isDone = state[keyWk(wi)];
+      const isOpen = state[keyOpen()] === wi || (state[keyOpen()] === undefined && wi === currentWeek);
       const isCurrent = wi === currentWeek;
+      const dateRange = weekDateRange(wi);
 
-      html += `<div class="week-card${isOpen ? ' open' : ''}${isDone ? ' completed' : ''}${isCurrent ? ' active' : ''}" data-week="${wi}">`;
-      html += `<div class="week-header" onclick="toggleWeek(${wi})">`;
-      html += `<div class="week-check${isDone ? ' done' : ''}" onclick="event.stopPropagation();toggleWeekDone(${wi})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-      </div>`;
-      html += `<div class="week-title"><strong>Week ${week.week}: ${week.title}</strong>${isCurrent ? '<span class="current-badge">current</span>' : ''}
-        <span>${week.subtitle}</span></div>`;
-      html += `<div class="week-expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></div>`;
-      html += `</div>`;
+      html += `<div class="week-card${isOpen?' open':''}${isDone?' completed':''}${isCurrent?' active':''}" data-week="${wi}">
+        <div class="week-header" onclick="toggleWeek(${wi})">
+          <div class="week-check${isDone?' done':''}" onclick="event.stopPropagation();toggleWeekDone(${wi})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div class="week-title">
+            <div class="week-date">${dateRange}</div>
+            <strong>Week ${week.week}: ${week.title}</strong>${isCurrent?'<span class="current-badge">current</span>':''}
+            <span class="desc">${week.subtitle}</span>
+          </div>
+          <div class="week-expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></div>
+        </div>
+        <div class="week-body">`;
 
-      // Body
-      html += `<div class="week-body">`;
       week.days.forEach((day, di) => {
-        html += `<div class="day-block"><div class="day-label">${day.label}</div>`;
-        day.exercises.forEach((ex, ei) => {
-          const exDone = state[getExKey(wi, di, ei)];
-          const nameHtml = ex.url ? `<a href="${ex.url}" target="_blank" rel="noopener">${ex.name}</a>` : ex.name;
+        // Compute day total estimated time
+        const dayTotal = day.exercises.reduce((sum, ex) => sum + (ex.estMin || 0), 0);
+        html += `<div class="day-block">
+          <div class="day-label"><span>${day.label}</span><span class="day-est">~ ${dayTotal} min total</span></div>`;
+
+        day.exercises.forEach((row, ei) => {
+          const ex = EX[row.k];
+          if (!ex) return;
+          const done = state[keyEx(wi, di, ei)];
+          const thumbUrl = ex.yt ? `https://img.youtube.com/vi/${ex.yt}/mqdefault.jpg` : '';
+          const linkUrl = ex.yt ? `https://www.youtube.com/watch?v=${ex.yt}` : '';
+          const skiNote = ex.skiNote || '';
+          const nameHtml = linkUrl
+            ? `<a href="${linkUrl}" target="_blank" rel="noopener">${ex.name}</a>`
+            : ex.name;
+
+          const preview = linkUrl
+            ? `<div class="ex-preview">
+                <img src="${thumbUrl}" alt="${ex.name} preview" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div class="ex-preview-fallback" style="display:none;">Preview unavailable — click to watch</div>
+                <div class="ex-preview-label">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 15l5.19-3L10 9v6zm11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+                  Click to watch form video
+                </div>
+              </div>`
+            : '';
+
+          const estStr = row.estMin ? ` — Est: ${row.estMin} min` : '';
+          const restStr = row.rest ? ` — rest ${row.rest}` : '';
+
           html += `<div class="ex-row">
-            <div class="ex-check${exDone ? ' done' : ''}" onclick="toggleEx(${wi},${di},${ei})">
+            <div class="ex-check${done?' done':''}" onclick="toggleEx(${wi},${di},${ei})">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
             </div>
             <div class="ex-content">
-              <div class="ex-name">${nameHtml}</div>
-              <div class="ex-prescription">${ex.sets}${ex.rest ? ' — rest ' + ex.rest : ''}</div>
-              ${ex.skiNote ? `<div class="ex-ski-note">⛷ ${ex.skiNote}</div>` : ''}
+              <div class="ex-name">${nameHtml}${preview}</div>
+              <div class="ex-prescription">${row.sets}${restStr}<span class="est">${estStr}</span></div>
+              ${skiNote ? `<div class="ex-ski-note">⛷ ${skiNote}</div>` : ''}
               <div class="ex-tracking">
-                ${ex.tracks.map((t, ti) => {
-                  const val = state[getTrackKey(wi, di, ei, ti)] || '';
-                  const ph = t === 'weight' ? 'lbs' : t === 'reps' ? 'reps' : t === 'time' ? 'min:sec' : t === 'distance' ? 'miles' : t === 'height' ? 'inches' : t;
+                ${row.tracks.map((t, ti) => {
+                  const val = state[keyTr(wi, di, ei, ti)] || '';
+                  const ph = t==='weight'?'lbs':t==='reps'?'reps':t==='time'?'min:sec':t==='distance'?'miles':t==='height'?'inches':t;
                   return `<input class="track-input" placeholder="${ph}" value="${val}" onchange="saveTrack(${wi},${di},${ei},${ti},this.value)">`;
                 }).join('')}
               </div>
@@ -941,15 +1062,12 @@ function render() {
         html += `</div>`;
       });
 
-      // Week notes
-      const notes = state[getNotesKey(wi)] || '';
+      const notes = state[keyNotes(wi)] || '';
       html += `<div class="week-notes"><label>Week Notes</label>
         <textarea placeholder="How did this week feel? Energy levels, soreness, wins…" onchange="saveNotes(${wi},this.value)">${notes}</textarea>
-      </div>`;
-      html += `</div></div>`;
-      weekGlobalIdx++;
+      </div></div></div>`;
+      wIdx++;
     });
-
     html += `</div>`;
   });
 
@@ -958,52 +1076,38 @@ function render() {
 }
 
 function toggleWeek(wi) {
-  state[getOpenKey()] = state[getOpenKey()] === wi ? -1 : wi;
+  state[keyOpen()] = state[keyOpen()] === wi ? -1 : wi;
   saveState(state);
   render();
-  // Scroll to the opened week
-  if (state[getOpenKey()] === wi) {
+  if (state[keyOpen()] === wi) {
     setTimeout(() => {
       const el = document.querySelector(`.week-card[data-week="${wi}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
     }, 50);
   }
 }
-
 function toggleWeekDone(wi) {
-  state[getWeekDoneKey(wi)] = !state[getWeekDoneKey(wi)];
-  saveState(state);
-  render();
+  state[keyWk(wi)] = !state[keyWk(wi)];
+  saveState(state); render();
 }
-
 function toggleEx(wi, di, ei) {
-  const key = getExKey(wi, di, ei);
-  state[key] = !state[key];
-  saveState(state);
-  render();
+  state[keyEx(wi, di, ei)] = !state[keyEx(wi, di, ei)];
+  saveState(state); render();
 }
-
 function saveTrack(wi, di, ei, ti, val) {
-  state[getTrackKey(wi, di, ei, ti)] = val;
-  saveState(state);
+  state[keyTr(wi, di, ei, ti)] = val; saveState(state);
 }
-
 function saveNotes(wi, val) {
-  state[getNotesKey(wi)] = val;
-  saveState(state);
+  state[keyNotes(wi)] = val; saveState(state);
 }
-
 function updateProgress() {
-  let total = 24, done = 0;
-  for (let i = 0; i < 24; i++) {
-    if (state[getWeekDoneKey(i)]) done++;
-  }
-  const pct = Math.round((done / total) * 100);
+  let done = 0;
+  for (let i = 0; i < 24; i++) if (state[keyWk(i)]) done++;
+  const pct = Math.round((done / 24) * 100);
   document.getElementById('progressBar').style.width = pct + '%';
-  document.getElementById('progressText').textContent = `${done} of ${total} weeks completed`;
+  document.getElementById('progressText').textContent = `${done} of 24 weeks completed`;
   document.getElementById('progressPct').textContent = pct + '%';
 }
-
 function resetAll() {
   if (confirm('Reset all progress? This cannot be undone.')) {
     localStorage.removeItem(STATE_KEY);
@@ -1011,8 +1115,6 @@ function resetAll() {
     render();
   }
 }
-
-// Init
 render();
 </script>
 </body>
