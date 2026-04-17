@@ -887,7 +887,7 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
         The framing above assumes you deploy the overlay on top of your existing spending plan. The second framing is more interesting for people who aren't yet retired: if a <span class="inline-num" id="dec-inline-sleeve">40%</span> overlay sleeve generates <span class="inline-num" id="dec-inline-yield">5%</span>, the effective withdrawal burden on the rest of the portfolio drops. To support the same lifestyle, you need meaningfully less saved.
       </p>
       <p>
-        In the default case — $100,000 of annual spending — a pure 4% SWR plan needs $2.5M. The same spending, supported by the overlay, needs roughly <span class="inline-num" id="dec-inline-needed">$1.67M</span>. That's a real shift: hundreds of thousands of dollars you don't need to accumulate to live the life you wanted.
+        To fund <span class="inline-num" id="dec-inline-spend">$80,000</span> of annual spending, a pure <span class="inline-num" id="dec-inline-swr">4%</span> SWR plan needs <span class="inline-num" id="dec-inline-baseline">$2M</span>. The same spending, supported by the overlay, needs only <span class="inline-num" id="dec-inline-needed">$1.33M</span> — roughly <span class="inline-num" id="dec-inline-saved">$667k</span> of capital you don't need to accumulate to live the life you wanted.
       </p>
     </div>
   </div>
@@ -1062,7 +1062,12 @@ const $ = (id) => document.getElementById(id);
 })();
 const fmtMoney = (n) => '$' + Math.round(n).toLocaleString();
 const fmtMoneyK = (n) => {
-  if (n >= 1e6) return '$' + (n/1e6).toFixed(n >= 10e6 ? 0 : 2) + 'M';
+  if (n >= 1e6) {
+    const decimals = n >= 10e6 ? 0 : 2;
+    const v = (n/1e6).toFixed(decimals);
+    // Strip trailing zero (e.g. "2.50" → "2.5", "2.00" → "2")
+    return '$' + v.replace(/\.?0+$/, '') + 'M';
+  }
   if (n >= 1e3) return '$' + Math.round(n/1e3) + 'k';
   return '$' + Math.round(n);
 };
@@ -1108,12 +1113,18 @@ function updateDec() {
   $('dec-bar1').style.width = (swrIncome / combined * 100) + '%';
   $('dec-bar2').style.width = '100%';
 
-  // Inline numbers in prose
+  // Inline numbers in prose — all derived from the user's actual sliders
   $('dec-inline-sleeve').textContent = Math.round(sleevePct*100) + '%';
   $('dec-inline-yield').textContent = (netYield*100).toFixed(1) + '%';
-  // $100k spending example
-  const exampleSpend = 100000;
-  $('dec-inline-needed').textContent = fmtMoneyK(exampleSpend / newRate);
+  $('dec-inline-swr').textContent = (swr*100).toFixed(1) + '%';
+  // Use the user's own implied spending (portfolio × SWR), not a hardcoded example
+  const impliedSpending = swrIncome; // = portfolio × swr
+  const baselineNeeded = impliedSpending / swr;      // equals portfolio, by definition
+  const overlayNeeded  = impliedSpending / newRate;  // smaller; this is the payoff
+  $('dec-inline-spend').textContent = fmtMoneyK(impliedSpending);
+  $('dec-inline-baseline').textContent = fmtMoneyK(baselineNeeded);
+  $('dec-inline-needed').textContent = fmtMoneyK(overlayNeeded);
+  $('dec-inline-saved').textContent = fmtMoneyK(baselineNeeded - overlayNeeded);
 
   // Rotating possibility callout
   renderPossibility(savedCapital);
