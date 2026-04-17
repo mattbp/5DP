@@ -377,6 +377,70 @@ section.act {
   letter-spacing: 0.02em;
 }
 
+/* Rotating "what you could do with the saved capital" callout */
+.possibility {
+  margin: -16px 0 32px;
+}
+.possibility-frame {
+  position: relative;
+  padding: 24px 56px 24px 24px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+}
+.possibility-amount {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+.possibility-text {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  font-weight: 300;
+  font-style: italic;
+}
+.possibility-cycle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+}
+.possibility-cycle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: rotate(90deg);
+}
+.possibility-cycle:active { transform: rotate(180deg); }
+
+.possibility-fade {
+  animation: poss-fade 0.35s ease-out;
+}
+@keyframes poss-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .result-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -768,6 +832,14 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
           Or keep your current lifestyle with a portfolio <span id="dec-portfolio-bump">33%</span> smaller.
         </div>
 
+        <div class="possibility" id="dec-possibility">
+          <div class="possibility-frame">
+            <div class="possibility-amount" id="dec-possibility-amount">$666,667</div>
+            <div class="possibility-text" id="dec-possibility-text">is capital you don't need to accumulate — enough to fund your grandkids' college and still have runway left over.</div>
+            <button class="possibility-cycle" id="dec-possibility-cycle" aria-label="Show another possibility">↻</button>
+          </div>
+        </div>
+
         <div class="bars">
           <div class="bar-row">
             <div class="bar-label">
@@ -845,15 +917,15 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
         </div>
 
         <div class="slider-group">
-          <label>Savings rate <span class="value" id="acc-savings-v">25%</span></label>
-          <input type="range" id="acc-savings" min="10" max="50" step="1" value="25">
-          <div class="range-labels"><span>10%</span><span>50%</span></div>
+          <label>Starting portfolio <span class="value" id="acc-start-v">$0</span></label>
+          <input type="range" id="acc-start" min="0" max="2000000" step="25000" value="0">
+          <div class="range-labels"><span>$0</span><span>$2M</span></div>
         </div>
 
         <div class="slider-group">
-          <label>Target SWR <span class="value" id="acc-swr-v">4.0%</span></label>
-          <input type="range" id="acc-swr" min="2.5" max="5" step="0.1" value="4">
-          <div class="range-labels"><span>2.5%</span><span>5.0%</span></div>
+          <label>Savings rate <span class="value" id="acc-savings-v">25%</span></label>
+          <input type="range" id="acc-savings" min="10" max="50" step="1" value="25">
+          <div class="range-labels"><span>10%</span><span>50%</span></div>
         </div>
 
         <div class="slider-group">
@@ -892,6 +964,9 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
     <div class="prose" style="margin-top: 56px;">
       <p>
         Two forces are at work here, and they compound on each other. First, the overlay generates yield on its sleeve each working year — yield that gets reinvested alongside your savings, pulling the portfolio up faster. Second, because that same overlay will continue producing income in retirement, the portfolio you actually need to finish at is smaller. A higher trajectory meeting a lower target. Years disappear off the runway.
+      </p>
+      <p style="color: var(--muted); font-size: 14px; font-style: italic;">
+        Modeled against the 4% rule as a retirement-spending convention. Starting portfolio defaults to $0 for anyone building from scratch; raise it if you've already got runway behind you.
       </p>
     </div>
   </div>
@@ -1014,14 +1089,11 @@ function updateDec() {
   const effYield = combined / portfolio;
   const spendBump = overlayIncome / swrIncome;
 
-  // Portfolio reduction framing (match spreadsheet): effective SWR = swr - sleeve*netYield
-  // Wait — spreadsheet uses: effective SWR = swr - sleevePct * netYield ... that's the REDUCE SWR framing.
-  // Portfolio needed = spending / effectiveSWR. If spending is held constant at swrIncome,
-  // then new portfolio = swrIncome / (swr + sleevePct*netYield* (sleeveRatio))...
-  // Actually simplest framing: to hit same income target, effective rate jumps from swr to swr + sleevePct*netYield.
-  // Portfolio needed for same income = income / newRate. Reduction = 1 - (swr / newRate) = 1 - swr/(swr + sleevePct*netYield)
+  // Effective rate with overlay. Reduction = 1 - (swr / newRate)
   const newRate = swr + sleevePct * netYield;
   const portfolioReduction = 1 - (swr / newRate);
+  // Capital "saved" — the portfolio they don't need to accumulate to fund their lifestyle
+  const savedCapital = portfolio * portfolioReduction;
 
   $('dec-spend-bump').textContent = Math.round(spendBump*100) + '%';
   $('dec-portfolio-bump').textContent = Math.round(portfolioReduction*100) + '%';
@@ -1042,10 +1114,107 @@ function updateDec() {
   // $100k spending example
   const exampleSpend = 100000;
   $('dec-inline-needed').textContent = fmtMoneyK(exampleSpend / newRate);
+
+  // Rotating possibility callout
+  renderPossibility(savedCapital);
 }
 ['dec-portfolio','dec-swr','dec-sleeve','dec-yield'].forEach(id => {
   $(id).addEventListener('input', updateDec);
 });
+
+// ===== Rotating "what you could do with the saved capital" callout =====
+// Possibilities are bucketed by dollar magnitude. A pool of options is drawn
+// from all tiers at-or-below the user's saved capital, so a small figure gets
+// modest suggestions and a large one unlocks the bigger dreams.
+const POSSIBILITIES = {
+  // Tier 1: up to ~$250k — meaningful but modest
+  modest: [
+    "is a fully paid-off mortgage for most American homeowners.",
+    "is a top-tier private college education for a grandchild — debt-free.",
+    "is a year-long sabbatical to write the book, learn the language, or walk the Camino.",
+    "is a meaningful endowment to a charity that will outlive you.",
+    "is a classic car, fully restored and in the garage — the one you've been eyeing since you were twenty.",
+  ],
+  // Tier 2: $250k – $1M
+  comfortable: [
+    "could fully fund 529 plans for four grandchildren, with a lot left over.",
+    "is a vacation home in a quiet corner of the Pacific Northwest.",
+    "is enough to launch a second career — buy the small business, start the vineyard, open the bookstore.",
+    "is a decade of first-class travel to wherever curiosity leads.",
+    "is a named scholarship at your alma mater, in perpetuity.",
+    "buys the lake house, the boat to go with it, and a few decades of fully paid slip fees.",
+  ],
+  // Tier 3: $1M – $3M
+  ambitious: [
+    "is a legacy gift that creates a named fund at a cause you care about.",
+    "could fully underwrite a grandchild's medical school — tuition, housing, all of it.",
+    "is a serious art collection, or a serious cellar, or both.",
+    "buys a sailboat and a few years circumnavigating at a leisurely pace.",
+    "is enough to seed-fund three entrepreneurs you believe in, no strings attached.",
+    "is a second home in Tuscany, Provence, or wherever the heart points.",
+  ],
+  // Tier 4: $3M+
+  transformational:  [
+    "is a family foundation with a real budget and real teeth.",
+    "is enough to buy and restore a historic property — and make it a retreat for your family for generations.",
+    "could fund a small research program, a museum wing, or a community health clinic in your name.",
+    "is the yacht, the crew, and a standing invitation for the grandkids to sail the world with you.",
+    "is generational wealth for your children's children — actual generational, not the aspirational kind.",
+  ],
+};
+
+let possibilityHistory = []; // remember last few to avoid immediate repeats
+
+function pickPossibility(savedCapital) {
+  // Build eligible pool based on saved amount
+  let pool = POSSIBILITIES.modest.slice();
+  if (savedCapital >= 250000) pool = pool.concat(POSSIBILITIES.comfortable);
+  if (savedCapital >= 1000000) pool = pool.concat(POSSIBILITIES.ambitious);
+  if (savedCapital >= 3000000) pool = pool.concat(POSSIBILITIES.transformational);
+
+  // Prefer items we haven't shown recently (last 3)
+  const recent = possibilityHistory.slice(-3);
+  const fresh = pool.filter(p => !recent.includes(p));
+  const source = fresh.length > 0 ? fresh : pool;
+
+  const pick = source[Math.floor(Math.random() * source.length)];
+  possibilityHistory.push(pick);
+  if (possibilityHistory.length > 10) possibilityHistory.shift();
+  return pick;
+}
+
+function renderPossibility(savedCapital) {
+  const amountEl = $('dec-possibility-amount');
+  const textEl = $('dec-possibility-text');
+  const frame = document.querySelector('.possibility-frame');
+  if (!amountEl || !textEl) return;
+
+  amountEl.textContent = fmtMoneyK(savedCapital);
+  textEl.textContent = pickPossibility(savedCapital);
+
+  // Trigger fade animation
+  if (frame) {
+    frame.classList.remove('possibility-fade');
+    // Force reflow to restart animation
+    void frame.offsetWidth;
+    frame.classList.add('possibility-fade');
+  }
+}
+
+// Cycle button: show a different possibility without changing sliders
+(() => {
+  const btn = $('dec-possibility-cycle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const portfolio = +$('dec-portfolio').value;
+    const swr = +$('dec-swr').value / 100;
+    const sleevePct = +$('dec-sleeve').value / 100;
+    const netYield = +$('dec-yield').value / 100;
+    const newRate = swr + sleevePct * netYield;
+    const savedCapital = portfolio * (1 - (swr / newRate));
+    renderPossibility(savedCapital);
+  });
+})();
 
 // ===== ACT III: Accumulation =====
 // Simulates portfolio growth in two modes:
@@ -1054,7 +1223,7 @@ function updateDec() {
 // Each mode runs against its own FI target: baseline target assumes full SWR must cover
 // spending; overlay target assumes SWR + overlay income jointly cover spending.
 // Income grows 1%/yr to match the spreadsheet's convention.
-function simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, useOverlay, maxYears=80) {
+function simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, useOverlay, startingPortfolio=0, maxYears=80) {
   const bondShare = 1 - equityShare;
   const incomeGrowth = 0.01;
   const spending = income * (1 - savingsRate);
@@ -1062,10 +1231,13 @@ function simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShar
   const overlayTarget = spending / (swr + sleevePct * overlayYield);
   const target = useOverlay ? overlayTarget : baselineTarget;
 
-  let portfolio = 0;
+  let portfolio = startingPortfolio;
   let currentIncome = income;
   const series = [portfolio];
   let yearsToFI = null;
+
+  // If already at/above target on day one, FI is year 0
+  if (portfolio >= target) yearsToFI = 0;
 
   for (let y = 1; y <= maxYears; y++) {
     const contribution = currentIncome * savingsRate;
@@ -1077,19 +1249,20 @@ function simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShar
     if (yearsToFI === null && portfolio >= target) yearsToFI = y;
     currentIncome *= (1 + incomeGrowth);
   }
-  return { series, yearsToFI: yearsToFI || maxYears, target, baselineTarget, overlayTarget };
+  return { series, yearsToFI: yearsToFI !== null ? yearsToFI : maxYears, target, baselineTarget, overlayTarget };
 }
 
 function updateAcc() {
   const income = +$('acc-income').value;
+  const startingPortfolio = +$('acc-start').value;
   const savingsRate = +$('acc-savings').value / 100;
-  const swr = +$('acc-swr').value / 100;
+  const swr = 0.04; // hardcoded to 4% convention
   const sleevePct = +$('acc-sleeve').value / 100;
   const overlayYield = +$('acc-yield').value / 100;
 
   $('acc-income-v').textContent = fmtMoneyK(income);
+  $('acc-start-v').textContent = fmtMoneyK(startingPortfolio);
   $('acc-savings-v').textContent = Math.round(savingsRate*100) + '%';
-  $('acc-swr-v').textContent = (swr*100).toFixed(1) + '%';
   $('acc-sleeve-v').textContent = Math.round(sleevePct*100) + '%';
   $('acc-yield-v').textContent = (overlayYield*100).toFixed(1) + '%';
 
@@ -1098,8 +1271,8 @@ function updateAcc() {
   const bondReturn = 0.03;
   const equityShare = 0.6;
 
-  const baseline = simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, false);
-  const withOverlay = simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true);
+  const baseline = simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, false, startingPortfolio);
+  const withOverlay = simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true, startingPortfolio);
 
   const yearsSaved = baseline.yearsToFI - withOverlay.yearsToFI;
   const pctSaved = baseline.yearsToFI > 0 ? Math.round((yearsSaved / baseline.yearsToFI) * 100) : 0;
@@ -1107,9 +1280,9 @@ function updateAcc() {
   $('acc-years-without').textContent = baseline.yearsToFI + ' years';
   $('acc-years-with').textContent = withOverlay.yearsToFI + ' years';
 
-  drawLadder(savingsRate, income, swr, sleevePct, overlayYield);
+  drawLadder(savingsRate, income, swr, sleevePct, overlayYield, startingPortfolio);
 }
-['acc-income','acc-savings','acc-swr','acc-sleeve','acc-yield'].forEach(id => {
+['acc-income','acc-start','acc-savings','acc-sleeve','acc-yield'].forEach(id => {
   $(id).addEventListener('input', updateAcc);
 });
 
@@ -1119,14 +1292,14 @@ function updateAcc() {
 // The row matching the user's current savings rate is highlighted. Every row uses
 // the same SWR / sleeve / yield — only savings rate changes — so the user sees the
 // phenomenon across all types of savers at once.
-function drawLadder(currentSavingsRate, income, swr, sleevePct, overlayYield) {
+function drawLadder(currentSavingsRate, income, swr, sleevePct, overlayYield, startingPortfolio=0) {
   const rates = [0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50];
   const equityReturn = 0.08, bondReturn = 0.03, equityShare = 0.6;
 
   // Compute (baseline, overlay) years for each savings rate
   const rows = rates.map(rate => {
-    const b = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, false);
-    const o = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true);
+    const b = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, false, startingPortfolio);
+    const o = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true, startingPortfolio);
     return { rate, baseYears: b.yearsToFI, overlayYears: o.yearsToFI, saved: b.baseYears - o.yearsToFI };
   });
 
