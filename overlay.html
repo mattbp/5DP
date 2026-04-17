@@ -454,35 +454,116 @@ section.act {
   background-image: repeating-linear-gradient(45deg, transparent 0, transparent 6px, rgba(255,255,255,0.08) 6px, rgba(255,255,255,0.08) 7px);
 }
 
-/* ===== Act 3 timeline chart ===== */
-.timeline-wrap {
-  margin-top: 40px;
-  padding: 40px;
+/* ===== Act 3 ladder chart ===== */
+.ladder-wrap {
+  padding: 32px;
   background: var(--paper-warm);
   border: 1px solid var(--rule);
 }
-.timeline-headline {
+.ladder-title {
   font-family: 'Fraunces', serif;
-  font-size: 32px;
-  font-weight: 300;
-  margin-bottom: 8px;
-  line-height: 1.15;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
 }
-.timeline-headline .big { color: var(--accent); font-weight: 500; }
-.timeline-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+.ladder-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
 
-#chart { width: 100%; height: 360px; }
+#ladder { display: flex; flex-direction: column; gap: 14px; }
+
+.ladder-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 110px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 3px;
+  transition: background 0.25s;
+}
+.ladder-row.active {
+  background: var(--paper);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.ladder-row .rate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-align: right;
+}
+.ladder-row.active .rate { color: var(--accent); font-weight: 600; }
+
+.ladder-bar {
+  height: 22px;
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+}
+.ladder-seg-base {
+  background: var(--ink);
+  height: 100%;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ladder-seg-saved {
+  background: var(--accent);
+  height: 100%;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+}
+.ladder-seg-saved::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(45deg, transparent 0, transparent 5px, rgba(255,255,255,0.08) 5px, rgba(255,255,255,0.08) 6px);
+}
+
+.ladder-row .years {
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: left;
+}
+.ladder-row .years .delta {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+  display: block;
+}
+.ladder-row .years .raw {
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 560px) {
+  .ladder-row { grid-template-columns: 52px 1fr 84px; gap: 10px; padding: 8px; }
+  .ladder-row .rate { font-size: 11px; }
+  .ladder-row .years .delta { font-size: 13px; }
+  .ladder-row .years .raw { font-size: 10px; }
+}
+
 .legend {
   display: flex;
   gap: 32px;
-  margin-top: 16px;
   font-size: 13px;
   color: var(--ink-soft);
   flex-wrap: wrap;
 }
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-swatch {
-  width: 20px; height: 3px; display: inline-block;
+  width: 20px; height: 12px; display: inline-block; border-radius: 2px;
 }
 
 /* ===== Risks ===== */
@@ -790,19 +871,19 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
 
       <div class="panel-output">
         <div class="result-headline">
-          <span>Financial independence arrives <span class="big" id="acc-years-saved">5 years</span> sooner.</span>
+          <span>The overlay shortens your runway to FI by roughly <span class="big" id="acc-pct-saved">25%</span>.</span>
         </div>
         <div class="result-sub">
-          <span id="acc-years-without">31 years</span> without the overlay <span style="color: var(--rule);">→</span> <span id="acc-years-with">26 years</span> with it.
+          At your current savings rate: <span id="acc-years-without">28 years</span> without the overlay <span style="color: var(--rule);">→</span> <span id="acc-years-with">21 years</span> with it. <span style="color: var(--muted);">The full picture is in the ladder below.</span>
         </div>
 
-        <div class="timeline-wrap" style="margin-top: 32px; padding: 24px;">
-          <svg id="chart" viewBox="0 0 800 360" preserveAspectRatio="none"></svg>
-          <div class="legend">
-            <div class="legend-item"><span class="legend-swatch" style="background: var(--ink);"></span> Baseline portfolio</div>
-            <div class="legend-item"><span class="legend-swatch" style="background: var(--accent);"></span> Portfolio with overlay</div>
-            <div class="legend-item"><span class="legend-swatch" style="border-top: 2px dashed var(--ink); background: transparent; height: 0;"></span> Target without overlay</div>
-            <div class="legend-item"><span class="legend-swatch" style="border-top: 2px dashed var(--accent); background: transparent; height: 0;"></span> Target with overlay</div>
+        <div class="ladder-wrap" style="margin-top: 32px;">
+          <div class="ladder-title">Years to financial independence, by savings rate</div>
+          <div class="ladder-sub">Every row is the same portfolio assumptions — just a different saver. Your current row is highlighted.</div>
+          <div id="ladder"></div>
+          <div class="legend" style="margin-top: 20px;">
+            <div class="legend-item"><span class="legend-swatch" style="background: var(--ink);"></span> Without overlay</div>
+            <div class="legend-item"><span class="legend-swatch" style="background: var(--accent);"></span> Years saved by overlay</div>
           </div>
         </div>
       </div>
@@ -1021,127 +1102,63 @@ function updateAcc() {
   const withOverlay = simulate(income, savingsRate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true);
 
   const yearsSaved = baseline.yearsToFI - withOverlay.yearsToFI;
-  $('acc-years-saved').textContent = yearsSaved + (yearsSaved === 1 ? ' year' : ' years');
+  const pctSaved = baseline.yearsToFI > 0 ? Math.round((yearsSaved / baseline.yearsToFI) * 100) : 0;
+  $('acc-pct-saved').textContent = pctSaved + '%';
   $('acc-years-without').textContent = baseline.yearsToFI + ' years';
   $('acc-years-with').textContent = withOverlay.yearsToFI + ' years';
 
-  drawChart(baseline, withOverlay);
+  drawLadder(savingsRate, income, swr, sleevePct, overlayYield);
 }
 ['acc-income','acc-savings','acc-swr','acc-sleeve','acc-yield'].forEach(id => {
   $(id).addEventListener('input', updateAcc);
 });
 
-// ===== Chart =====
-// Two portfolio trajectories (baseline + overlay-boosted) and two horizontal targets
-// (higher baseline target, lower overlay-reduced target). Markers show where each
-// trajectory crosses its respective target — that's the year of FI.
-function drawChart(baseline, withOverlay) {
-  const svg = $('chart');
-  const W = 800, H = 360;
-  const padL = 70, padR = 30, padT = 30, padB = 40;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
+// ===== Ladder bar chart =====
+// Horizontal bars showing years-to-FI across a ladder of savings rates.
+// Each bar has two segments: baseline years (ink) and years-saved-by-overlay (ochre).
+// The row matching the user's current savings rate is highlighted. Every row uses
+// the same SWR / sleeve / yield — only savings rate changes — so the user sees the
+// phenomenon across all types of savers at once.
+function drawLadder(currentSavingsRate, income, swr, sleevePct, overlayYield) {
+  const rates = [0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50];
+  const equityReturn = 0.08, bondReturn = 0.03, equityShare = 0.6;
 
-  const maxYear = Math.min(Math.max(baseline.yearsToFI, withOverlay.yearsToFI) + 5, 50);
-  const maxVal = Math.max(
-    baseline.series.slice(0, maxYear + 1).reduce((a,b) => Math.max(a,b), 0),
-    withOverlay.series.slice(0, maxYear + 1).reduce((a,b) => Math.max(a,b), 0),
-    baseline.baselineTarget * 1.1
-  );
+  // Compute (baseline, overlay) years for each savings rate
+  const rows = rates.map(rate => {
+    const b = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, false);
+    const o = simulate(income, rate, swr, equityReturn, bondReturn, equityShare, sleevePct, overlayYield, true);
+    return { rate, baseYears: b.yearsToFI, overlayYears: o.yearsToFI, saved: b.baseYears - o.yearsToFI };
+  });
 
-  const xScale = (y) => padL + (y / maxYear) * plotW;
-  const yScale = (v) => padT + plotH - (v / maxVal) * plotH;
+  // Recompute saved correctly
+  rows.forEach(r => r.saved = r.baseYears - r.overlayYears);
 
-  const toPath = (s) => {
-    let d = '';
-    for (let i = 0; i <= maxYear && i < s.length; i++) {
-      d += (i === 0 ? 'M' : 'L') + xScale(i).toFixed(1) + ',' + yScale(s[i]).toFixed(1) + ' ';
-    }
-    return d;
-  };
+  // Max baseline years used to scale the bars consistently across rows
+  const maxYears = Math.max(...rows.map(r => r.baseYears));
 
-  // Area fill under the overlay curve for emphasis
-  const overlayArea = toPath(withOverlay.series) +
-    `L ${xScale(maxYear).toFixed(1)},${yScale(0).toFixed(1)} ` +
-    `L ${xScale(0).toFixed(1)},${yScale(0).toFixed(1)} Z`;
+  // Pick the ladder row closest to current savings rate for highlighting
+  const activeIdx = rows.reduce((bestIdx, r, i) =>
+    Math.abs(r.rate - currentSavingsRate) < Math.abs(rows[bestIdx].rate - currentSavingsRate) ? i : bestIdx, 0);
 
-  // Gridlines
-  let grid = '';
-  for (let i = 0; i <= 4; i++) {
-    const v = (maxVal / 4) * i;
-    const y = yScale(v);
-    grid += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c9c0ad" stroke-width="0.5" opacity="0.6"/>`;
-    grid += `<text x="${padL - 10}" y="${y + 4}" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10" fill="#6b6458">${fmtMoneyK(v)}</text>`;
-  }
-
-  let xticks = '';
-  for (let i = 0; i <= maxYear; i += 5) {
-    const x = xScale(i);
-    xticks += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#6b6458">Yr ${i}</text>`;
-  }
-
-  // Reduced target (lower)
-  const overlayTY = yScale(baseline.overlayTarget);
-  const overlayTargetLine = `
-    <line x1="${padL}" y1="${overlayTY}" x2="${W-padR}" y2="${overlayTY}"
-          stroke="#a8742a" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.7"/>
-    <text x="${padL + 8}" y="${overlayTY - 6}" text-anchor="start"
-          font-family="'Fraunces', serif" font-size="11" font-style="italic" fill="#a8742a">
-      Target with overlay: ${fmtMoneyK(baseline.overlayTarget)}
-    </text>
-  `;
-
-  // Baseline target (higher)
-  const baseTY = yScale(baseline.baselineTarget);
-  const baseTargetLine = `
-    <line x1="${padL}" y1="${baseTY}" x2="${W-padR}" y2="${baseTY}"
-          stroke="#1a1f2e" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.6"/>
-    <text x="${padL + 8}" y="${baseTY - 6}" text-anchor="start"
-          font-family="'Fraunces', serif" font-size="11" font-style="italic" fill="#1a1f2e">
-      Target without overlay: ${fmtMoneyK(baseline.baselineTarget)}
-    </text>
-  `;
-
-  // Crossover markers
-  const xOver = xScale(withOverlay.yearsToFI);
-  const xBase = xScale(baseline.yearsToFI);
-  const yOver = yScale(withOverlay.series[withOverlay.yearsToFI] || baseline.overlayTarget);
-  const yBase = yScale(baseline.series[baseline.yearsToFI] || baseline.baselineTarget);
-
-  const markers = `
-    <line x1="${xOver}" y1="${H - padB}" x2="${xOver}" y2="${yOver}"
-          stroke="#a8742a" stroke-width="1" opacity="0.35" stroke-dasharray="2,3"/>
-    <circle cx="${xOver}" cy="${yOver}" r="5" fill="#a8742a" stroke="#f4f0e8" stroke-width="2"/>
-    <text x="${xOver}" y="${H - padB + 18}" text-anchor="middle"
-          font-family="'Fraunces', serif" font-size="11" font-weight="600" fill="#a8742a">
-      Yr ${withOverlay.yearsToFI}
-    </text>
-
-    <line x1="${xBase}" y1="${H - padB}" x2="${xBase}" y2="${yBase}"
-          stroke="#1a1f2e" stroke-width="1" opacity="0.3" stroke-dasharray="2,3"/>
-    <circle cx="${xBase}" cy="${yBase}" r="5" fill="#1a1f2e" stroke="#f4f0e8" stroke-width="2"/>
-    <text x="${xBase}" y="${H - padB + 18}" text-anchor="middle"
-          font-family="'Fraunces', serif" font-size="11" font-weight="600" fill="#1a1f2e">
-      Yr ${baseline.yearsToFI}
-    </text>
-  `;
-
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#a8742a" stop-opacity="0.15"/>
-        <stop offset="100%" stop-color="#a8742a" stop-opacity="0.02"/>
-      </linearGradient>
-    </defs>
-    ${grid}
-    <path d="${overlayArea}" fill="url(#areaGrad)" stroke="none"/>
-    ${overlayTargetLine}
-    ${baseTargetLine}
-    <path d="${toPath(baseline.series)}" fill="none" stroke="#1a1f2e" stroke-width="2"/>
-    <path d="${toPath(withOverlay.series)}" fill="none" stroke="#a8742a" stroke-width="2.5"/>
-    ${markers}
-    ${xticks}
-  `;
+  const ladder = $('ladder');
+  ladder.innerHTML = rows.map((r, i) => {
+    const overlayPct = (r.overlayYears / maxYears) * 100;
+    const savedPct = (r.saved / maxYears) * 100;
+    const isActive = i === activeIdx;
+    return `
+      <div class="ladder-row ${isActive ? 'active' : ''}">
+        <div class="rate">${Math.round(r.rate * 100)}%</div>
+        <div class="ladder-bar">
+          <div class="ladder-seg-base" style="width: ${overlayPct}%"></div>
+          <div class="ladder-seg-saved" style="width: ${savedPct}%"></div>
+        </div>
+        <div class="years">
+          <span class="delta">−${r.saved} yrs</span>
+          <span class="raw">${r.overlayYears} → ${r.baseYears}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // Init
