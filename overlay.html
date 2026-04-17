@@ -724,7 +724,6 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
 <div class="wrap">
   <div class="masthead">
     <span><a href="#" id="mp-contact" class="contact-link">Matt Pisut</a></span>
-    <span>A Note on Yield</span>
   </div>
 </div>
 
@@ -771,8 +770,8 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
       </div>
       <div class="explainer-card">
         <h4>The capital footprint</h4>
-        <p>A well-structured overlay uses only a slice of the portfolio as collateral — typically 30–50%. The rest continues to compound normally in equities and bonds. The overlay is additive, not a replacement.</p>
-        <p class="mechanic">mechanic: ~40% sleeve → generates ~5% net annual yield</p>
+        <p>A well-structured overlay uses only a slice of the portfolio as collateral — typically 30–50%. We call this slice the <em>option overlay allocation</em>. The rest of the portfolio continues to compound normally in equities and bonds. The overlay is additive, not a replacement.</p>
+        <p class="mechanic">mechanic: ~40% overlay allocation → generates ~5% net annual yield</p>
       </div>
     </div>
 
@@ -812,7 +811,7 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
         </div>
 
         <div class="slider-group">
-          <label>Overlay sleeve % <span class="value" id="dec-sleeve-v">40%</span></label>
+          <label>Overlay allocation <span class="value" id="dec-sleeve-v">40%</span></label>
           <input type="range" id="dec-sleeve" min="20" max="60" step="5" value="40">
           <div class="range-labels"><span>20%</span><span>60%</span></div>
         </div>
@@ -884,10 +883,10 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
 
     <div class="prose" style="margin-top: 56px;">
       <p>
-        The framing above assumes you deploy the overlay on top of your existing spending plan. The second framing is more interesting for people who aren't yet retired: if a <span class="inline-num" id="dec-inline-sleeve">40%</span> overlay sleeve generates <span class="inline-num" id="dec-inline-yield">5%</span>, the effective withdrawal burden on the rest of the portfolio drops. To support the same lifestyle, you need meaningfully less saved.
+        The same math runs the other way, too. Instead of spending more on the existing portfolio, you could target the same lifestyle with a smaller one. If a <span class="inline-num" id="dec-inline-sleeve">40%</span> overlay allocation generates <span class="inline-num" id="dec-inline-yield">5%</span> net, the overlay supplies income the portfolio itself doesn't have to. Your required savings shrink accordingly.
       </p>
       <p>
-        To fund <span class="inline-num" id="dec-inline-spend">$80,000</span> of annual spending, a pure <span class="inline-num" id="dec-inline-swr">4%</span> SWR plan needs <span class="inline-num" id="dec-inline-baseline">$2M</span>. The same spending, supported by the overlay, needs only <span class="inline-num" id="dec-inline-needed">$1.33M</span> — roughly <span class="inline-num" id="dec-inline-saved">$667k</span> of capital you don't need to accumulate to live the life you wanted.
+        To fund <span class="inline-num" id="dec-inline-spend">$80,000</span> of annual spending, a pure <span class="inline-num" id="dec-inline-swr">4%</span> SWR plan needs <span class="inline-num" id="dec-inline-baseline">$2M</span>. With the overlay layered on, the same spending is supported by just <span class="inline-num" id="dec-inline-needed">$1.33M</span> — roughly <span class="inline-num" id="dec-inline-saved">$667k</span> of capital you don't need to accumulate to live the life you want.
       </p>
     </div>
   </div>
@@ -929,7 +928,7 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
         </div>
 
         <div class="slider-group">
-          <label>Overlay sleeve % <span class="value" id="acc-sleeve-v">40%</span></label>
+          <label>Overlay allocation <span class="value" id="acc-sleeve-v">40%</span></label>
           <input type="range" id="acc-sleeve" min="20" max="60" step="5" value="40">
           <div class="range-labels"><span>20%</span><span>60%</span></div>
         </div>
@@ -963,7 +962,7 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
 
     <div class="prose" style="margin-top: 56px;">
       <p>
-        Two forces are at work here, and they compound on each other. First, the overlay generates yield on its sleeve each working year — yield that gets reinvested alongside your savings, pulling the portfolio up faster. Second, because that same overlay will continue producing income in retirement, the portfolio you actually need to finish at is smaller. A higher trajectory meeting a lower target. Years disappear off the runway.
+        Two forces are at work here, and they compound on each other. First, the overlay generates yield on its allocation each working year — yield that gets reinvested alongside your savings, pulling the portfolio up faster. Second, because that same overlay will continue producing income in retirement, the portfolio you actually need to finish at is smaller. A higher trajectory meeting a lower target. <span id="acc-closer">The result is a materially shorter path to financial independence — this is how <span class="inline-num" id="acc-closer-base">28</span> years becomes <span class="inline-num" id="acc-closer-overlay">21</span>.</span>
       </p>
       <p style="color: var(--muted); font-size: 14px; font-style: italic;">
         Modeled against the 4% rule as a retirement-spending convention. Starting portfolio defaults to $0 for anyone building from scratch; raise it if you've already got runway behind you.
@@ -1290,6 +1289,18 @@ function updateAcc() {
   $('acc-pct-saved').textContent = pctSaved + '%';
   $('acc-years-without').textContent = baseline.yearsToFI + ' years';
   $('acc-years-with').textContent = withOverlay.yearsToFI + ' years';
+
+  // Dynamic closer sentence with edge-case handling
+  const closerEl = $('acc-closer');
+  if (closerEl) {
+    if (yearsSaved <= 0) {
+      closerEl.textContent = "At these particular settings the overlay's effect on time-to-FI is negligible — the interesting gains start appearing as allocation and yield scale up.";
+    } else if (yearsSaved === 1) {
+      closerEl.innerHTML = 'The result is a shorter path to financial independence — at your current settings, the overlay shaves <span class="inline-num">1</span> year off the journey.';
+    } else {
+      closerEl.innerHTML = 'The result is a materially shorter path to financial independence — this is how <span class="inline-num">' + baseline.yearsToFI + '</span> years becomes <span class="inline-num">' + withOverlay.yearsToFI + '</span>.';
+    }
+  }
 
   drawLadder(savingsRate, income, swr, sleevePct, overlayYield, startingPortfolio);
 }
