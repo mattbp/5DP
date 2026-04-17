@@ -540,7 +540,7 @@ section.act {
 
 .ladder-row {
   display: grid;
-  grid-template-columns: 72px 1fr 110px;
+  grid-template-columns: 72px 1fr auto;
   align-items: center;
   gap: 14px;
   padding: 10px 12px;
@@ -551,14 +551,14 @@ section.act {
   background: var(--paper);
   box-shadow: inset 3px 0 0 var(--accent);
 }
-.ladder-row .rate {
+.ladder-rate {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: var(--muted);
   letter-spacing: 0.05em;
   text-align: right;
 }
-.ladder-row.active .rate { color: var(--accent); font-weight: 600; }
+.ladder-row.active .ladder-rate { color: var(--accent); font-weight: 600; }
 
 .ladder-bar {
   height: 22px;
@@ -568,6 +568,7 @@ section.act {
   border-radius: 2px;
   overflow: hidden;
   display: flex;
+  min-width: 60px;
 }
 .ladder-seg-base {
   background: var(--ink);
@@ -587,32 +588,67 @@ section.act {
   background-image: repeating-linear-gradient(45deg, transparent 0, transparent 5px, rgba(255,255,255,0.08) 5px, rgba(255,255,255,0.08) 6px);
 }
 
-.ladder-row .years {
+.ladder-years {
   font-family: 'Fraunces', serif;
   font-size: 13px;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
   text-align: left;
+  min-width: 100px;
 }
-.ladder-row .years .delta {
+.ladder-years .delta {
   color: var(--accent);
   font-weight: 600;
   font-size: 15px;
   display: block;
 }
-.ladder-row .years .raw {
+.ladder-years .raw {
   color: var(--muted);
   font-size: 11px;
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.02em;
 }
 
+/* Mobile: stack meta (rate + years) on top, bar full-width below */
 @media (max-width: 560px) {
-  .ladder-row { grid-template-columns: 52px 1fr 84px; gap: 10px; padding: 8px; }
-  .ladder-row .rate { font-size: 11px; }
-  .ladder-row .years .delta { font-size: 13px; }
-  .ladder-row .years .raw { font-size: 10px; }
+  .ladder-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "rate years"
+      "bar bar";
+    row-gap: 8px;
+    column-gap: 10px;
+    padding: 12px;
+  }
+  .ladder-rate {
+    grid-area: rate;
+    text-align: left;
+    font-size: 13px;
+    align-self: center;
+  }
+  .ladder-years {
+    grid-area: years;
+    text-align: right;
+    min-width: 0;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .ladder-years .delta {
+    display: inline;
+    font-size: 14px;
+  }
+  .ladder-years .raw {
+    display: inline;
+    font-size: 11px;
+  }
+  .ladder-bar {
+    grid-area: bar;
+    width: 100%;
+    height: 18px;
+  }
 }
 
 .legend {
@@ -731,7 +767,7 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
     <div class="eyebrow">The Option Overlay</div>
     <h1>What if your portfolio could also act like a <em>second paycheck?</em></h1>
     <p class="deck">
-      The conventional playbook for retirement assumes one source of return: price appreciation. A disciplined option-selling overlay adds a second — a yield that comes from time passing, not the market going up. This note walks through what that actually does to the math, both for people still building wealth and for people spending from it.
+      Traditional retirement portfolios have two return engines: equity appreciation and bond yields. An option-selling overlay adds a third — a yield that comes from time passing, whether markets are rising, flat, or even falling. This note walks through what that actually does to the math, both for people still building wealth and for people spending from it.
     </p>
     <p class="byline">A Walkthrough in Four Acts</p>
   </div>
@@ -1338,12 +1374,12 @@ function drawLadder(currentSavingsRate, income, swr, sleevePct, overlayYield, st
     const isActive = i === activeIdx;
     return `
       <div class="ladder-row ${isActive ? 'active' : ''}">
-        <div class="rate">${Math.round(r.rate * 100)}%</div>
+        <div class="ladder-rate">${Math.round(r.rate * 100)}%</div>
         <div class="ladder-bar">
           <div class="ladder-seg-base" style="width: ${overlayPct}%"></div>
           <div class="ladder-seg-saved" style="width: ${savedPct}%"></div>
         </div>
-        <div class="years">
+        <div class="ladder-years">
           <span class="delta">−${r.saved} yrs</span>
           <span class="raw">${r.overlayYears} → ${r.baseYears}</span>
         </div>
