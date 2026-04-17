@@ -379,32 +379,29 @@ section.act {
 
 /* Rotating "what you could do with the saved capital" callout */
 .possibility {
-  margin: -16px 0 32px;
+  margin: -20px 0 32px;
 }
 .possibility-frame {
   position: relative;
-  padding: 24px 56px 24px 24px;
+  padding: 22px 56px 22px 24px;
   background: var(--paper);
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
 }
-.possibility-amount {
-  font-family: 'Fraunces', serif;
-  font-size: 26px;
-  font-weight: 500;
-  color: var(--accent);
-  letter-spacing: -0.015em;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 4px;
-  line-height: 1.1;
-}
 .possibility-text {
   font-family: 'Fraunces', serif;
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.45;
-  color: var(--ink-soft);
+  color: var(--ink);
   font-weight: 300;
   font-style: italic;
+}
+.possibility-text .possibility-amount {
+  color: var(--accent);
+  font-weight: 500;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 .possibility-cycle {
   position: absolute;
@@ -828,13 +825,12 @@ footer a:hover { color: var(--accent); border-color: var(--accent); }
           <span id="dec-headline">You can spend <span class="big" id="dec-spend-bump">50%</span> more in retirement.</span>
         </div>
         <div class="result-sub" id="dec-sub">
-          Or keep your current lifestyle with a portfolio <span id="dec-portfolio-bump">33%</span> smaller.
+          Or keep your current lifestyle with a portfolio <span id="dec-portfolio-bump">33%</span> smaller — that's <span class="inline-num" id="dec-sub-saved">$667k</span> of capital you could use for&hellip;
         </div>
 
         <div class="possibility" id="dec-possibility">
           <div class="possibility-frame">
-            <div class="possibility-amount" id="dec-possibility-amount">$666,667</div>
-            <div class="possibility-text" id="dec-possibility-text">is capital you don't need to accumulate — enough to fund your grandkids' college and still have runway left over.</div>
+            <div class="possibility-text" id="dec-possibility-text"><span class="possibility-amount">$667k</span> could launch a second career — buy the small business, start the vineyard, open the bookstore.</div>
             <button class="possibility-cycle" id="dec-possibility-cycle" aria-label="Show another possibility">↻</button>
           </div>
         </div>
@@ -1101,6 +1097,7 @@ function updateDec() {
 
   $('dec-spend-bump').textContent = Math.round(spendBump*100) + '%';
   $('dec-portfolio-bump').textContent = Math.round(portfolioReduction*100) + '%';
+  $('dec-sub-saved').textContent = fmtMoneyK(savedCapital);
   $('dec-swr-inc').textContent = fmtMoneyK(swrIncome);
   $('dec-overlay-inc').textContent = fmtMoneyK(overlayIncome);
   $('dec-combined').textContent = fmtMoneyK(combined);
@@ -1139,37 +1136,37 @@ function updateDec() {
 const POSSIBILITIES = {
   // Tier 1: up to ~$250k — meaningful but modest
   modest: [
-    "is a fully paid-off mortgage for most American homeowners.",
-    "is a top-tier private college education for a grandchild — debt-free.",
-    "is a year-long sabbatical to write the book, learn the language, or walk the Camino.",
-    "is a meaningful endowment to a charity that will outlive you.",
-    "is a classic car, fully restored and in the garage — the one you've been eyeing since you were twenty.",
+    "{amount} could pay off the mortgage, for good.",
+    "{amount} could fund a top-tier private college education for a grandchild, debt-free.",
+    "{amount} could buy a year-long sabbatical to write the book, learn the language, or walk the Camino.",
+    "{amount} could endow a charity that will outlive you.",
+    "{amount} could restore the classic car you've been eyeing since you were twenty.",
   ],
   // Tier 2: $250k – $1M
   comfortable: [
-    "could fully fund 529 plans for four grandchildren, with a lot left over.",
-    "is a vacation home in a quiet corner of the Pacific Northwest.",
-    "is enough to launch a second career — buy the small business, start the vineyard, open the bookstore.",
-    "is a decade of first-class travel to wherever curiosity leads.",
-    "is a named scholarship at your alma mater, in perpetuity.",
-    "buys the lake house, the boat to go with it, and a few decades of fully paid slip fees.",
+    "{amount} could fully fund 529 plans for four grandchildren, with a lot left over.",
+    "{amount} could buy a vacation home in a quiet corner of the Pacific Northwest.",
+    "{amount} could launch a second career — buy the small business, start the vineyard, open the bookstore.",
+    "{amount} could bankroll a decade of first-class travel to wherever curiosity leads.",
+    "{amount} could endow a named scholarship at your alma mater, in perpetuity.",
+    "{amount} could buy the lake house, the boat to go with it, and a few decades of fully paid slip fees.",
   ],
   // Tier 3: $1M – $3M
   ambitious: [
-    "is a legacy gift that creates a named fund at a cause you care about.",
-    "could fully underwrite a grandchild's medical school — tuition, housing, all of it.",
-    "is a serious art collection, or a serious cellar, or both.",
-    "buys a sailboat and a few years circumnavigating at a leisurely pace.",
-    "is enough to seed-fund three entrepreneurs you believe in, no strings attached.",
-    "is a second home in Tuscany, Provence, or wherever the heart points.",
+    "{amount} could establish a legacy gift — a named fund at a cause you care about.",
+    "{amount} could fully underwrite a grandchild's medical school — tuition, housing, all of it.",
+    "{amount} could build a serious art collection, or a serious cellar, or both.",
+    "{amount} could buy a sailboat and a few years circumnavigating at a leisurely pace.",
+    "{amount} could seed-fund three entrepreneurs you believe in, no strings attached.",
+    "{amount} could buy a second home in Tuscany, Provence, or wherever the heart points.",
   ],
   // Tier 4: $3M+
   transformational:  [
-    "is a family foundation with a real budget and real teeth.",
-    "is enough to buy and restore a historic property — and make it a retreat for your family for generations.",
-    "could fund a small research program, a museum wing, or a community health clinic in your name.",
-    "is the yacht, the crew, and a standing invitation for the grandkids to sail the world with you.",
-    "is generational wealth for your children's children — actual generational, not the aspirational kind.",
+    "{amount} could establish a family foundation with a real budget and real teeth.",
+    "{amount} could buy and restore a historic property — a retreat for your family for generations.",
+    "{amount} could fund a small research program, a museum wing, or a community health clinic in your name.",
+    "{amount} could buy the yacht, hire the crew, and issue a standing invitation for the grandkids to sail the world with you.",
+    "{amount} could create generational wealth for your children's children — actual generational, not the aspirational kind.",
   ],
 };
 
@@ -1194,18 +1191,17 @@ function pickPossibility(savedCapital) {
 }
 
 function renderPossibility(savedCapital) {
-  const amountEl = $('dec-possibility-amount');
   const textEl = $('dec-possibility-text');
   const frame = document.querySelector('.possibility-frame');
-  if (!amountEl || !textEl) return;
+  if (!textEl) return;
 
-  amountEl.textContent = fmtMoneyK(savedCapital);
-  textEl.textContent = pickPossibility(savedCapital);
+  const template = pickPossibility(savedCapital);
+  const amountHtml = '<span class="possibility-amount">' + fmtMoneyK(savedCapital) + '</span>';
+  textEl.innerHTML = template.replace('{amount}', amountHtml);
 
   // Trigger fade animation
   if (frame) {
     frame.classList.remove('possibility-fade');
-    // Force reflow to restart animation
     void frame.offsetWidth;
     frame.classList.add('possibility-fade');
   }
