@@ -79,7 +79,6 @@
       <span class="legend-item"><span style="display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#1D9E75,#1D9E75);border-radius:1px;position:relative;top:-1px;"></span>Top 3 win streaks</span>
     </div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
-      <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="strategyToggle" style="margin:0 4px 0 0;cursor:pointer;">Strategy only (excl. deposits)</label>
       <label class="legend-item" style="cursor:pointer;"><input type="checkbox" id="spyToggle" style="margin:0 4px 0 0;cursor:pointer;">SPY Buy &amp; Hold</label>
     </div>
   </div>
@@ -444,11 +443,6 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   }
 
   const mainDatasets = [{type:'line',label:'Account balance',data:adjBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
-  // Strategy-only curve (deposit-neutral TWR) — only added if there are actual deposits
-  const hasDeposits = totalDeposits !== 0;
-  if (hasDeposits) {
-    mainDatasets.push({type:'line',label:'Strategy only',data:twrAdjBals,borderColor:dark?'rgba(255,200,100,0.7)':'rgba(200,130,30,0.7)',borderWidth:1.5,borderDash:[3,3],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,hidden:true});
-  }
   if (spyBals) {
     mainDatasets.push({type:'line',label:'SPY buy & hold',data:spyBals,borderColor:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,spanGaps:true,hidden:true});
   }
@@ -496,7 +490,6 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
         label:ctx=>{
           const i=ctx.dataIndex;
           if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
-          if(ctx.dataset.label==='Strategy only'){const v=ctx.parsed.y;return v!=null?` Strategy only: $${Math.round(v).toLocaleString()}`:null;}
           const lines=[` Balance: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(raw[i].pl)}`];
           if(raw[i].deposit){const sign=raw[i].deposit>=0?'+':'-';const abs=Math.abs(raw[i].deposit).toLocaleString();lines.push(` ${raw[i].deposit>=0?'Deposit':'Withdrawal'}: ${sign}$${abs}`);}
           return lines;
@@ -643,21 +636,6 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   } else {
     spyToggle.disabled = true;
     spyToggle.parentElement.style.opacity = '0.4';
-  }
-
-  /* ── Strategy-only toggle checkbox ── */
-  const strategyToggle = document.getElementById('strategyToggle');
-  const strategyDs = mainChart.data.datasets.find(ds => ds.label === 'Strategy only');
-  if (strategyToggle) {
-    if (hasDeposits && strategyDs) {
-      strategyToggle.addEventListener('change', function() {
-        strategyDs.hidden = !this.checked;
-        mainChart.update();
-      });
-    } else {
-      strategyToggle.disabled = true;
-      if (strategyToggle.parentElement) strategyToggle.parentElement.style.display = 'none';
-    }
   }
 }
 
