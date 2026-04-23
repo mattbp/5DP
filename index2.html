@@ -32,6 +32,10 @@
   .badge { display: inline-block; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 500; text-align: center; line-height: 18px; color: #fff; }
   .dd-amt { color: #791f1f; font-weight: 500; }
   .disclaimer { margin-top: 16px; font-size: 11px; color: #888780; line-height: 1.6; border-top: 0.5px solid #d3d1c7; padding-top: 12px; font-style: italic; }
+  .range-filter { display: flex; justify-content: flex-end; gap: 4px; margin: 2px 0 8px; }
+  .range-filter button { font-family: inherit; font-size: 11px; font-weight: 500; color: #73726c; background: #fff; border: 0.5px solid #d3d1c7; border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+  .range-filter button:hover { background: #f1efe8; color: #1a1a18; }
+  .range-filter button.active { background: #378ADD; border-color: #378ADD; color: #fff; }
   #dashboard { display: none; }
 
   @media (prefers-color-scheme: dark) {
@@ -52,6 +56,9 @@
     .dd-amt { color: #f09595; }
     .section-label { color: #9c9a92; }
     .disclaimer { color: #73726c; border-color: #444441; }
+    .range-filter button { background: #242422; border-color: #444441; color: #9c9a92; }
+    .range-filter button:hover { background: #2c2c2a; color: #e8e6dc; }
+    .range-filter button.active { background: #378ADD; border-color: #378ADD; color: #fff; }
   }
 </style>
 </head>
@@ -78,6 +85,13 @@
   </div>
 
   <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  <div class="range-filter" id="rangeFilter">
+    <button data-range="1M">1M</button>
+    <button data-range="3M">3M</button>
+    <button data-range="6M">6M</button>
+    <button data-range="1Y">1Y</button>
+    <button data-range="ALL" class="active">All</button>
+  </div>
   <div class="pl-wrap"><canvas id="plChart"></canvas></div>
 
   <div class="section-label">Worst drawdown</div>
@@ -93,6 +107,8 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script>
 const CSV_URL   = 'https://mattbp.github.io/5DP/data.csv';
 const SPY_URL   = 'https://mattbp.github.io/5DP/spy.csv';
@@ -471,7 +487,12 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const mainChart = new Chart(document.getElementById('mainChart').getContext('2d'),{
     data:{labels,datasets:mainDatasets},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{
+      plugins:{legend:{display:false},
+        zoom:{
+          pan:{enabled:true,mode:'x',onPan:({chart})=>{if(window.syncPan)window.syncPan(chart);}},
+          limits:{x:{min:0,max:n-1}}
+        },
+        tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{
         label:ctx=>{
           const i=ctx.dataIndex;
           if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
@@ -498,7 +519,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     },plugins:[drawdownPlugin, winStreakPlugin, depositPlugin]
   });
 
-  new Chart(document.getElementById('plChart').getContext('2d'),{
+  const plChart = new Chart(document.getElementById('plChart').getContext('2d'),{
     data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{
       label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();},
@@ -522,11 +543,93 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const mAvg=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)/mData[k].pls.length));
   const mColors=mTotals.map(v=>v>=0?'rgba(29,158,117,0.75)':'rgba(226,75,74,0.75)');
 
-  new Chart(document.getElementById('monthlyChart').getContext('2d'),{
+  const monthlyChart = new Chart(document.getElementById('monthlyChart').getContext('2d'),{
     type:'bar',data:{labels:monthLabels,datasets:[{label:'Monthly P&L',data:mTotals,backgroundColor:mColors,borderRadius:4,barPercentage:0.6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,
       callbacks:{label:ctx=>{const i=ctx.dataIndex;return[` Option premium: ${fmt(mPremium[i])}`,` Win rate: ${mWR[i]}%`,` Avg day: ${fmt(mAvg[i])}`,` Worst day: ${fmt(mWorst[i])}`,` Best day: ${fmt(mBest[i])}`];}}}},
       scales:{x:{ticks:{color:textColor,font:{size:11}},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+  });
+
+  /* ── Range filter & pan sync ── */
+  const lastDate = parseDate(raw[n-1].d);
+
+  // Find the first raw index whose date >= target date
+  function idxForDate(targetDate) {
+    for (let i = 0; i < n; i++) { if (parseDate(raw[i].d) >= targetDate) return i; }
+    return n - 1;
+  }
+
+  // Find the first month index whose month >= target date (based on filteredMonths)
+  function monthIdxForDate(targetDate) {
+    const tKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}`;
+    for (let i = 0; i < filteredMonths.length; i++) {
+      const [mo, yr] = filteredMonths[i].split('/');
+      const mKey = `${yr}-${String(mo).padStart(2,'0')}`;
+      if (mKey >= tKey) return i;
+    }
+    return filteredMonths.length - 1;
+  }
+
+  // Apply a range to all three charts
+  function applyRange(code) {
+    let startIdx = 0;
+    let mStartIdx = 0;
+    if (code !== 'ALL') {
+      const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 }[code];
+      const target = new Date(lastDate);
+      target.setMonth(target.getMonth() - months);
+      startIdx = idxForDate(target);
+      mStartIdx = monthIdxForDate(target);
+    }
+    // Main chart + PL chart share the same x axis (index-based on raw days)
+    mainChart.options.scales.x.min = startIdx;
+    mainChart.options.scales.x.max = n - 1;
+    plChart.options.scales.x.min = startIdx;
+    plChart.options.scales.x.max = n - 1;
+    // Monthly chart uses filteredMonths indices
+    monthlyChart.options.scales.x.min = mStartIdx;
+    monthlyChart.options.scales.x.max = filteredMonths.length - 1;
+    mainChart.update('none');
+    plChart.update('none');
+    monthlyChart.update('none');
+  }
+
+  // Called after the user pans the main chart — sync the other two
+  function syncPan(src) {
+    if (src !== mainChart) return;
+    const xScale = mainChart.scales.x;
+    const minI = Math.max(0, Math.round(xScale.min));
+    const maxI = Math.min(n - 1, Math.round(xScale.max));
+    plChart.options.scales.x.min = minI;
+    plChart.options.scales.x.max = maxI;
+    // Find months covered by the pan range
+    const startDate = parseDate(raw[minI].d);
+    const endDate = parseDate(raw[maxI].d);
+    const mStart = monthIdxForDate(startDate);
+    let mEnd = filteredMonths.length - 1;
+    for (let i = filteredMonths.length - 1; i >= 0; i--) {
+      const [mo, yr] = filteredMonths[i].split('/');
+      const mKey = `${yr}-${String(mo).padStart(2,'0')}`;
+      const eKey = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+      if (mKey <= eKey) { mEnd = i; break; }
+    }
+    monthlyChart.options.scales.x.min = mStart;
+    monthlyChart.options.scales.x.max = mEnd;
+    plChart.update('none');
+    monthlyChart.update('none');
+    // Deactivate preset buttons when user is panning
+    document.querySelectorAll('#rangeFilter button').forEach(b => b.classList.remove('active'));
+  }
+  // Expose syncPan globally for zoom plugin callback
+  window.syncPan = (chart) => syncPan(chart);
+
+  // Wire up the filter buttons
+  document.querySelectorAll('#rangeFilter button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#rangeFilter button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyRange(btn.dataset.range);
+    });
   });
 
   /* ── SPY toggle checkbox ── */
