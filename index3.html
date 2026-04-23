@@ -72,7 +72,7 @@
 
   <div class="legend" style="justify-content:space-between;">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
-      <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Growth of $10,000</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Growth of $1,000,000</span>
       <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
       <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
       <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Worst drawdown</span>
@@ -230,10 +230,27 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     return Math.round((b + twrCumInt) * 100) / 100;
   });
 
+  /* ── Normalized "Growth of $1,000,000" curves (deposit-neutral) ── */
+  const NOMINAL_BASE = 1000000;
+  const nominalBals = twrAdjBals.map(b => Math.round((b / START_BAL) * NOMINAL_BASE * 100) / 100);
+  // Per-day scale to convert real $ to nominal $: (nominal_start_of_day / real_start_of_day)
+  const nominalScale = raw.map((r, i) => {
+    const realStart = r.balStart + r.deposit;
+    const nominalStart = i === 0 ? NOMINAL_BASE : nominalBals[i-1];
+    return realStart > 0 ? nominalStart / realStart : 1;
+  });
+  const nominalPL = raw.map((r, i) => Math.round(r.pl * nominalScale[i] * 100) / 100);
+  const nominalInterest = dailyInterest.map((interest, i) => {
+    if (i === 0) return 0;
+    const realStart = raw[i-1].bal;
+    const nominalStart = nominalBals[i-1];
+    return realStart > 0 ? interest * (nominalStart / realStart) : 0;
+  });
+
   const n=raw.length, wins=raw.filter(r=>r.w).length, losses=n-wins;
   const winRate=(wins/n*100).toFixed(1);
-  const netPremium=Math.round(raw.reduce((s,r)=>s+r.pl,0));
-  const netInterest=Math.round(dailyInterest.reduce((s,v)=>s+v,0));
+  const netPremium=Math.round(nominalPL.reduce((s,v)=>s+v,0));
+  const netInterest=Math.round(nominalInterest.reduce((s,v)=>s+v,0));
   const totalDeposits = Math.round(raw.reduce((s,r)=>s+r.deposit,0));
   const years=(parseDate(raw[n-1].d)-parseDate(raw[0].d))/(365.25*86400000);
 
@@ -254,8 +271,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const downDev=Math.sqrt(downsideSq.reduce((s,v)=>s+v,0)/n);
   const sortino=downDev>0?((meanR-rfDaily)/downDev*Math.sqrt(252)).toFixed(2):'N/A';
 
-  const grossWins = raw.reduce((s,r)=>r.pl>0?s+r.pl:s, 0);
-  const grossLoss = raw.reduce((s,r)=>r.pl<0?s+Math.abs(r.pl):s, 0);
+  const grossWins = nominalPL.reduce((s,v)=>v>0?s+v:s, 0);
+  const grossLoss = nominalPL.reduce((s,v)=>v<0?s+Math.abs(v):s, 0);
   const profitFactor = (grossWins/grossLoss).toFixed(2);
 
   // Max drawdown computed on TWR curve (deposit-neutral)
@@ -265,8 +282,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     const dd=peak-twrAdjBals[i];
     if(dd>maxDD){ maxDD=dd; maxDDpct=dd/peak*100; }
   }
-  // Scale maxDD back to current dollar scale for display
-  const maxDDdollarCurrent = Math.round(maxDD * (adjBals[n-1] / twrAdjBals[n-1]));
+  // Scale maxDD to nominal dollar scale for display
+  const maxDDdollarNominal = Math.round(maxDD * (NOMINAL_BASE / START_BAL));
 
   document.getElementById('metricGrid').innerHTML=`
     <div class="metric">
@@ -283,7 +300,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     <div class="metric">
       <div class="metric-label">Max drawdown</div>
       <div class="metric-value" style="color:#a32d2d;">${maxDDpct.toFixed(1)}%</div>
-      <div class="metric-sub">($${Math.round(maxDDdollarCurrent).toLocaleString()}) from peak</div>
+      <div class="metric-sub">($${Math.round(maxDDdollarNominal).toLocaleString()}) from peak</div>
     </div>
     <div class="metric">
       <div class="metric-label">Profit factor</div>
@@ -317,14 +334,14 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     } else if(inDD){
       const ddAmt = twrAdjBals[peakIdx]-troughVal;
       const ddPct = ddAmt/twrAdjBals[peakIdx]*100;
-      ddPeriods.push({peakIdx,troughIdx,recoveryIdx:i,pct:ddPct,amount:Math.round(ddPct/100*adjBals[peakIdx]),days:Math.round((parseDate(raw[i].d)-parseDate(raw[peakIdx].d))/86400000)});
+      ddPeriods.push({peakIdx,troughIdx,recoveryIdx:i,pct:ddPct,amount:Math.round(ddPct/100*nominalBals[peakIdx]),days:Math.round((parseDate(raw[i].d)-parseDate(raw[peakIdx].d))/86400000)});
       inDD=false;troughVal=Infinity;
     }
   }
   if(inDD){
     const ddAmt = twrAdjBals[peakIdx]-troughVal;
     const ddPct = ddAmt/twrAdjBals[peakIdx]*100;
-    ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,pct:ddPct,amount:Math.round(ddPct/100*adjBals[peakIdx]),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
+    ddPeriods.push({peakIdx,troughIdx,recoveryIdx:n-1,pct:ddPct,amount:Math.round(ddPct/100*nominalBals[peakIdx]),days:Math.round((parseDate(raw[n-1].d)-parseDate(raw[peakIdx].d))/86400000)});
   }
   ddPeriods.sort((a,b)=>b.pct-a.pct);
   const top3=ddPeriods.slice(0,1);
@@ -421,13 +438,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     });
   }};
 
-  /* ── SPY benchmark curve (simulates the same capital flows invested in SPY) ── */
-  /* ── Normalized "Growth of $10,000" curves (deposit-neutral) ── */
-  const NOMINAL_BASE = 10000;
-  // Algo: scale TWR-adjusted balance (strategy-only, includes interest) to start at NOMINAL_BASE
-  const nominalBals = twrAdjBals.map(b => Math.round((b / START_BAL) * NOMINAL_BASE * 100) / 100);
-
-  /* ── SPY benchmark curve (nominal $10k growth, deposit-neutral) ── */
+  /* ── SPY benchmark curve (nominal growth, deposit-neutral) ── */
   let spyBals = null;
   if (spyData) {
     const firstDate = raw[0].d;
@@ -442,7 +453,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     }
   }
 
-  const mainDatasets = [{type:'line',label:'Growth of $10,000',data:nominalBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
+  const mainDatasets = [{type:'line',label:'Growth of $1,000,000',data:nominalBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
   if (spyBals) {
     mainDatasets.push({type:'line',label:'SPY buy & hold',data:spyBals,borderColor:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,spanGaps:true,hidden:true});
   }
@@ -460,8 +471,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
         tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:10,callbacks:{
         label:ctx=>{
           const i=ctx.dataIndex;
-          if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${v.toFixed(2)}`:null;}
-          return [` Value: $${ctx.parsed.y.toFixed(2)}`,` Net option premium: ${fmt(raw[i].pl)}`];
+          if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
+          return [` Value: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(nominalPL[i])}`];
         },
         afterBody:items=>{
           const i=items[0]?.dataIndex;
@@ -473,7 +484,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
             const spyVal=spyBals[i];
             if(spyVal!=null){const diff=((nominalBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';parts.push(` Algo vs SPY: ${sign}${diff}%`);}
           }
-          if(raw[i].d===lossNote){parts.push('');parts.push('Learning Event: This significant loss prompted');parts.push('implementation of Enhanced Exit Order Management,');parts.push('which would have improved the day by over 78%');parts.push('to a loss of ~$1,485 — closer to typical loss days.');}
+          if(raw[i].d===lossNote){parts.push('');parts.push('Learning Event: This significant loss prompted');parts.push('implementation of Enhanced Exit Order Management,');parts.push('which would have improved the day by over 78%');parts.push('to a loss of ~$'+Math.round(1485 * nominalScale[i]).toLocaleString()+' — closer to typical loss days.');}
           return parts;
         }
       }}},
@@ -482,12 +493,12 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   });
 
   const plChart = new Chart(document.getElementById('plChart').getContext('2d'),{
-    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:raw.map(r=>r.pl),backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
+    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:nominalPL,backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{
-      label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(v).toLocaleString();},
-      afterBody:items=>{const i=items[0]?.dataIndex;if(i==null) return [];return raw[i].d===lossNote?['','Learning Event: This significant loss prompted','implementation of Enhanced Exit Order Management,','which would have improved the day by over 78%','to a loss of ~$1,485 — closer to typical loss days.']:[];}
+      label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(Math.round(v)).toLocaleString();},
+      afterBody:items=>{const i=items[0]?.dataIndex;if(i==null) return [];return raw[i].d===lossNote?['','Learning Event: This significant loss prompted','implementation of Enhanced Exit Order Management,','which would have improved the day by over 78%','to a loss of ~$'+Math.round(1485 * nominalScale[i]).toLocaleString()+' — closer to typical loss days.']:[];}
     }}},
-      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{min:-2000,ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{min:-2000*(NOMINAL_BASE/START_BAL),ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 
   const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
@@ -495,7 +506,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const monthLabels=filteredMonths.map(m=>{const[mo,yr]=m.split('/');return new Date(parseInt(yr),parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});});
   const mData={};
   filteredMonths.forEach(m=>mData[m]={pls:[],wins:0,losses:0,interest:0});
-  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(r.pl);mData[key].interest+=dailyInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
+  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(nominalPL[i]);mData[key].interest+=nominalInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
   const mPremium=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
   const mInterest=filteredMonths.map(k=>Math.round(mData[k].interest));
   const mTotals=filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
