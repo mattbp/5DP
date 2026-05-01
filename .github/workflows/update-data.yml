@@ -33,7 +33,7 @@ jobs:
           IBKR_TOKEN:    ${{ secrets.IBKR_TOKEN }}
           IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         shell: pwsh
-        run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv"
+        run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv" -Days 2
 
       - name: Update SPY data
         shell: pwsh
