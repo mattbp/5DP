@@ -76,7 +76,7 @@
 
   <div class="legend" style="justify-content:space-between;">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
-      <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Growth of $1,000,000</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span><span id="mainLegendLabel">Account balance</span></span>
       <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;opacity:0.7;"></span>Win</span>
       <span class="legend-item"><span class="legend-dot" style="background:#E24B4A;opacity:0.7;"></span>Loss</span>
       <span class="legend-item"><span style="display:inline-block;width:18px;height:10px;border-top:2px solid #E24B4A;border-left:2px solid #E24B4A;border-right:2px solid #E24B4A;border-radius:2px 2px 0 0;"></span>Worst drawdown</span>
@@ -117,6 +117,11 @@ const CSV_URL   = 'https://mattbp.github.io/5DP/data.csv';
 const SPY_URL   = 'https://mattbp.github.io/5DP/spy.csv';
 const START_BAL = 442428.22;
 const RF_DAILY  = 0.04 / 365.25;
+
+// Display mode for the main chart and dollar amounts:
+//   true  → "Growth of $1,000,000" — all dollar amounts scaled to a nominal $1M base (deposit-neutral, easier to read)
+//   false → Actual TWR-adjusted dollars — your real account in deposit-neutral terms (no nominal scaling)
+const USE_NOMINAL_SCALING = false;
 
 // Deposits / withdrawals applied at start of the given trading date (positive = deposit, negative = withdrawal)
 // Add entries like: { date: '2/24/2026', amount: 500000 }
@@ -244,8 +249,11 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     return Math.round((b + twrCumInt) * 100) / 100;
   });
 
-  /* ── Normalized "Growth of $1,000,000" curves (deposit-neutral) ── */
-  const NOMINAL_BASE = 1000000;
+  /* ── Normalized growth curves (deposit-neutral) ── */
+  const NOMINAL_BASE = USE_NOMINAL_SCALING ? 1000000 : START_BAL;
+  const CHART_LABEL = USE_NOMINAL_SCALING ? 'Growth of $1,000,000' : 'Account balance (TWR-adjusted)';
+  const legendLabelEl = document.getElementById('mainLegendLabel');
+  if (legendLabelEl) legendLabelEl.textContent = CHART_LABEL;
   const nominalBals = twrAdjBals.map(b => Math.round((b / START_BAL) * NOMINAL_BASE * 100) / 100);
   // Per-day scale to convert real $ to nominal $: (nominal_start_of_day / real_start_of_day)
   const nominalScale = raw.map((r, i) => {
@@ -467,7 +475,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     }
   }
 
-  const mainDatasets = [{type:'line',label:'Growth of $1,000,000',data:nominalBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
+  const mainDatasets = [{type:'line',label:CHART_LABEL,data:nominalBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
   if (spyBals) {
     mainDatasets.push({type:'line',label:'SPY buy & hold',data:spyBals,borderColor:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,spanGaps:true,hidden:true});
   }
@@ -486,7 +494,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
         label:ctx=>{
           const i=ctx.dataIndex;
           if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
-          return [` Value: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(nominalPL[i])}`];
+          return [` ${USE_NOMINAL_SCALING?'Value':'Balance'}: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(nominalPL[i])}`];
         },
         afterBody:items=>{
           const i=items[0]?.dataIndex;
@@ -502,7 +510,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
           return parts;
         }
       }}},
-      scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
+      scales:{x:{ticks:{color:textColor,font:{size:11},maxTicksLimit:8,maxRotation:0},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{size:11},callback:v=>v>=100000?'$'+(v/1000).toFixed(0)+'k':'$'+v.toLocaleString()},grid:{color:gridColor}}}
     },plugins:[drawdownPlugin, winStreakPlugin]
   });
 
