@@ -33,7 +33,8 @@ jobs:
           IBKR_TOKEN:    ${{ secrets.IBKR_TOKEN }}
           IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         shell: pwsh
-        run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv" -Days (Get-Random -Minimum 1 -Maximum 61)
+        run: ./scripts/GetIBKROrders.ps1 -MergeData "data.csv" -Days (Get-Random -Minimum 1 -Maximum 61) 
+        # Random days because IBKR has some type of caching if you use a static value
 
       - name: Update SPY data
         shell: pwsh
