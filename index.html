@@ -273,10 +273,15 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     return realStart > 0 ? interest * (nominalStart / realStart) : 0;
   });
 
+  // Display-facing P&L and interest: nominal-scaled in default mode, real raw dollars in ?actual mode.
+  // (Ratio metrics like CAGR/Sharpe/Sortino/drawdown% stay TWR-based regardless — see below.)
+  const displayPL = USE_NOMINAL_SCALING ? nominalPL : raw.map(r => r.pl);
+  const displayInterest = USE_NOMINAL_SCALING ? nominalInterest : dailyInterest;
+
   const n=raw.length, wins=raw.filter(r=>r.w).length, losses=n-wins;
   const winRate=(wins/n*100).toFixed(1);
-  const netPremium=Math.round(nominalPL.reduce((s,v)=>s+v,0));
-  const netInterest=Math.round(nominalInterest.reduce((s,v)=>s+v,0));
+  const netPremium=Math.round(displayPL.reduce((s,v)=>s+v,0));
+  const netInterest=Math.round(displayInterest.reduce((s,v)=>s+v,0));
   const totalDeposits = Math.round(raw.reduce((s,r)=>s+r.deposit,0));
   const years=(parseDate(raw[n-1].d)-parseDate(raw[0].d))/(365.25*86400000);
 
@@ -297,8 +302,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const downDev=Math.sqrt(downsideSq.reduce((s,v)=>s+v,0)/n);
   const sortino=downDev>0?((meanR-rfDaily)/downDev*Math.sqrt(252)).toFixed(2):'N/A';
 
-  const grossWins = nominalPL.reduce((s,v)=>v>0?s+v:s, 0);
-  const grossLoss = nominalPL.reduce((s,v)=>v<0?s+Math.abs(v):s, 0);
+  const grossWins = displayPL.reduce((s,v)=>v>0?s+v:s, 0);
+  const grossLoss = displayPL.reduce((s,v)=>v<0?s+Math.abs(v):s, 0);
   const profitFactor = (grossWins/grossLoss).toFixed(2);
 
   // Max drawdown computed on TWR curve (deposit-neutral)
@@ -447,7 +452,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
       const midX = (x1 + x2) / 2;
       const midY = (y1 + tickLen + y2 + tickLen) / 2;
-      const totalPL = nominalPL.slice(si, ei + 1).reduce((sum, v) => sum + v, 0);
+      const totalPL = displayPL.slice(si, ei + 1).reduce((sum, v) => sum + v, 0);
       const label = `${streak.len}W  +$${Math.round(totalPL).toLocaleString()}`;
 
       const angle = Math.atan2((y2 + tickLen) - (y1 + tickLen), x2 - x1);
@@ -512,7 +517,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
         label:ctx=>{
           const i=ctx.dataIndex;
           if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
-          return [` ${USE_NOMINAL_SCALING?'Value':'Balance'}: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(USE_NOMINAL_SCALING?nominalPL[i]:raw[i].pl)}`];
+          return [` ${USE_NOMINAL_SCALING?'Value':'Balance'}: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(displayPL[i])}`];
         },
         afterBody:items=>{
           const i=items[0]?.dataIndex;
@@ -532,13 +537,18 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     },plugins:[drawdownPlugin, winStreakPlugin]
   });
 
+  // Histogram floor: use the actual minimum P&L, but never deeper than -$2k.
+  // If no day reaches -$2k, the axis shrinks to fit; bigger losses get clamped at -$2k.
+  const plMin = Math.min(0, ...displayPL);
+  const plFloor = Math.max(plMin, -2000);
+
   const plChart = new Chart(document.getElementById('plChart').getContext('2d'),{
-    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:nominalPL,backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
+    data:{labels,datasets:[{type:'bar',label:'Daily P&L',data:displayPL,backgroundColor:raw.map(r=>r.w?'rgba(29,158,117,0.7)':'rgba(226,75,74,0.7)'),borderRadius:2,barPercentage:0.8}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:dark?'#2c2c2a':'#fff',borderColor:dark?'#444441':'#d3d1c7',borderWidth:1,titleColor:textColor,bodyColor:dark?'#c2c0b6':'#3d3d3a',padding:8,callbacks:{
       label:ctx=>{const v=ctx.parsed.y;return ' '+(v>=0?'+':'')+' $'+Math.abs(Math.round(v)).toLocaleString();},
       afterBody:items=>{const i=items[0]?.dataIndex;if(i==null) return [];return raw[i].d===lossNote?['','Learning Event: This significant loss prompted','implementation of Enhanced Exit Order Management,','which would have improved the day by over 78%','to a loss of ~$'+Math.round(1485 * nominalScale[i]).toLocaleString()+' — closer to typical loss days.']:[];}
     }}},
-      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{min:-2000,ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
+      scales:{x:{ticks:{display:false},grid:{color:gridColor}},y:{min:plFloor,ticks:{color:textColor,font:{size:10},callback:v=>(v>=0?'+':'')+' $'+(v/1000).toFixed(1)+'k'},grid:{color:gridColor}}}}
   });
 
   const allMonths=[...new Set(raw.map(r=>{const dt=parseDate(r.d);return`${dt.getMonth()+1}/${dt.getFullYear()}`;}))];
@@ -546,7 +556,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const monthLabels=filteredMonths.map(m=>{const[mo,yr]=m.split('/');return new Date(parseInt(yr),parseInt(mo)-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});});
   const mData={};
   filteredMonths.forEach(m=>mData[m]={pls:[],wins:0,losses:0,interest:0});
-  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(nominalPL[i]);mData[key].interest+=nominalInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
+  raw.forEach((r,i)=>{const dt=parseDate(r.d),key=`${dt.getMonth()+1}/${dt.getFullYear()}`;if(!mData[key])return;mData[key].pls.push(displayPL[i]);mData[key].interest+=displayInterest[i];r.w?mData[key].wins++:mData[key].losses++;});
   const mPremium=filteredMonths.map(k=>Math.round(mData[k].pls.reduce((a,b)=>a+b,0)));
   const mInterest=filteredMonths.map(k=>Math.round(mData[k].interest));
   const mTotals=filteredMonths.map((_,i)=>mPremium[i]+mInterest[i]);
@@ -583,6 +593,14 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     return filteredMonths.length - 1;
   }
 
+  // Recompute the histogram y-floor for the visible [startIdx, endIdx] window.
+  // Floor = the most negative P&L in view, but never deeper than -$2k. 0 if no losses in view.
+  function updatePlFloor(startIdx, endIdx) {
+    let minVal = 0;
+    for (let i = startIdx; i <= endIdx && i < n; i++) { if (displayPL[i] < minVal) minVal = displayPL[i]; }
+    plChart.options.scales.y.min = Math.max(minVal, -2000);
+  }
+
   // Apply a range to all three charts
   function applyRange(code) {
     let startIdx = 0;
@@ -599,6 +617,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     mainChart.options.scales.x.max = n - 1;
     plChart.options.scales.x.min = startIdx;
     plChart.options.scales.x.max = n - 1;
+    updatePlFloor(startIdx, n - 1);
     // Monthly chart uses filteredMonths indices
     monthlyChart.options.scales.x.min = mStartIdx;
     monthlyChart.options.scales.x.max = filteredMonths.length - 1;
@@ -615,6 +634,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     const maxI = Math.min(n - 1, Math.round(xScale.max));
     plChart.options.scales.x.min = minI;
     plChart.options.scales.x.max = maxI;
+    updatePlFloor(minI, maxI);
     // Find months covered by the pan range
     const startDate = parseDate(raw[minI].d);
     const endDate = parseDate(raw[maxI].d);
