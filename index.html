@@ -252,10 +252,13 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
   /* ── Normalized growth curves (deposit-neutral) ── */
   const NOMINAL_BASE = USE_NOMINAL_SCALING ? 1000000 : START_BAL;
-  const CHART_LABEL = USE_NOMINAL_SCALING ? 'Growth of $1,000,000' : 'Account balance (TWR-adjusted)';
+  const CHART_LABEL = USE_NOMINAL_SCALING ? 'Growth of $1,000,000' : 'Account balance';
   const legendLabelEl = document.getElementById('mainLegendLabel');
   if (legendLabelEl) legendLabelEl.textContent = CHART_LABEL;
   const nominalBals = twrAdjBals.map(b => Math.round((b / START_BAL) * NOMINAL_BASE * 100) / 100);
+  // The main chart line: nominal $1M growth in default mode; actual account balance (with deposits) in ?actual mode.
+  // Note: metrics, drawdown, and P&L scaling all stay TWR-based regardless — only the displayed equity line changes.
+  const mainLineBals = USE_NOMINAL_SCALING ? nominalBals : adjBals;
   // Per-day scale to convert real $ to nominal $: (nominal_start_of_day / real_start_of_day)
   const nominalScale = raw.map((r, i) => {
     const realStart = r.balStart + r.deposit;
@@ -392,8 +395,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     const{ctx,chartArea,scales}=chart; if(!chartArea||!top3[0]) return;
     const dd=top3[0];
     const x1=scales.x.getPixelForValue(dd.peakIdx),x2=scales.x.getPixelForValue(dd.recoveryIdx);
-    const y1=scales.y.getPixelForValue(nominalBals[dd.peakIdx]);
-    const y2=scales.y.getPixelForValue(nominalBals[dd.recoveryIdx]);
+    const y1=scales.y.getPixelForValue(mainLineBals[dd.peakIdx]);
+    const y2=scales.y.getPixelForValue(mainLineBals[dd.recoveryIdx]);
     const tickLen=14;
     const topY=Math.min(y1,y2)-tickLen;
     ctx.save(); ctx.strokeStyle='rgba(226,75,74,1)'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round';
@@ -423,8 +426,8 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
       const si = streak.startIdx, ei = streak.endIdx;
       const x1 = scales.x.getPixelForValue(si);
       const x2 = scales.x.getPixelForValue(ei);
-      const y1 = scales.y.getPixelForValue(nominalBals[si]);
-      const y2 = scales.y.getPixelForValue(nominalBals[ei]);
+      const y1 = scales.y.getPixelForValue(mainLineBals[si]);
+      const y2 = scales.y.getPixelForValue(mainLineBals[ei]);
 
       const s = wsColors[ri];
       const tickLen = 14 + ri * 4;
@@ -444,7 +447,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
 
       const midX = (x1 + x2) / 2;
       const midY = (y1 + tickLen + y2 + tickLen) / 2;
-      const totalPL = raw.slice(si, ei + 1).reduce((sum, r) => sum + r.pl, 0);
+      const totalPL = nominalPL.slice(si, ei + 1).reduce((sum, v) => sum + v, 0);
       const label = `${streak.len}W  +$${Math.round(totalPL).toLocaleString()}`;
 
       const angle = Math.atan2((y2 + tickLen) - (y1 + tickLen), x2 - x1);
@@ -461,22 +464,36 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     });
   }};
 
-  /* ── SPY benchmark curve (nominal growth, deposit-neutral) ── */
+  /* ── SPY benchmark curve ──
+     Default (nominal) mode: deposit-neutral growth of NOMINAL_BASE.
+     ?actual mode: simulate the same capital flows (incl. deposits) invested in SPY, so it tracks the
+     actual account balance line fairly (buys more shares when a deposit lands). */
   let spyBals = null;
   if (spyData) {
     const firstDate = raw[0].d;
     const firstSPY = spyData[firstDate];
     if (firstSPY) {
       let lastKnownPrice = firstSPY;
-      spyBals = raw.map((r) => {
-        const price = spyData[r.d];
-        if (price != null) lastKnownPrice = price;
-        return price != null ? Math.round((lastKnownPrice / firstSPY) * NOMINAL_BASE * 100) / 100 : null;
-      });
+      if (USE_NOMINAL_SCALING) {
+        spyBals = raw.map((r) => {
+          const price = spyData[r.d];
+          if (price != null) lastKnownPrice = price;
+          return price != null ? Math.round((lastKnownPrice / firstSPY) * NOMINAL_BASE * 100) / 100 : null;
+        });
+      } else {
+        // Track shares of SPY; deposits buy more shares at that day's price
+        let spyShares = START_BAL / firstSPY;
+        spyBals = raw.map((r) => {
+          const price = spyData[r.d];
+          if (price != null) lastKnownPrice = price;
+          if (r.deposit) spyShares += r.deposit / lastKnownPrice;
+          return price != null ? Math.round(spyShares * price * 100) / 100 : null;
+        });
+      }
     }
   }
 
-  const mainDatasets = [{type:'line',label:CHART_LABEL,data:nominalBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
+  const mainDatasets = [{type:'line',label:CHART_LABEL,data:mainLineBals,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.3}];
   if (spyBals) {
     mainDatasets.push({type:'line',label:'SPY buy & hold',data:spyBals,borderColor:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:3,fill:false,tension:0.3,spanGaps:true,hidden:true});
   }
@@ -495,7 +512,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
         label:ctx=>{
           const i=ctx.dataIndex;
           if(ctx.dataset.label==='SPY buy & hold'){const v=ctx.parsed.y;return v!=null?` SPY: $${Math.round(v).toLocaleString()}`:null;}
-          return [` ${USE_NOMINAL_SCALING?'Value':'Balance'}: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(nominalPL[i])}`];
+          return [` ${USE_NOMINAL_SCALING?'Value':'Balance'}: $${Math.round(ctx.parsed.y).toLocaleString()}`,` Net option premium: ${fmt(USE_NOMINAL_SCALING?nominalPL[i]:raw[i].pl)}`];
         },
         afterBody:items=>{
           const i=items[0]?.dataIndex;
@@ -505,7 +522,7 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
           const spyDs=mainChart.data.datasets.find(ds=>ds.label==='SPY buy & hold');
           if(spyBals&&spyDs&&!spyDs.hidden){
             const spyVal=spyBals[i];
-            if(spyVal!=null){const diff=((nominalBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';parts.push(` Algo vs SPY: ${sign}${diff}%`);}
+            if(spyVal!=null){const diff=((mainLineBals[i]-spyVal)/spyVal*100).toFixed(1);const sign=diff>=0?'+':'';parts.push(` Algo vs SPY: ${sign}${diff}%`);}
           }
           if(raw[i].d===lossNote){parts.push('');parts.push('Learning Event: This significant loss prompted');parts.push('implementation of Enhanced Exit Order Management,');parts.push('which would have improved the day by over 78%');parts.push('to a loss of ~$'+Math.round(1485 * nominalScale[i]).toLocaleString()+' — closer to typical loss days.');}
           return parts;
