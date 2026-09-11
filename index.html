@@ -291,16 +291,19 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
   const cagrPremium =((twrBals[n-1]/START_BAL)**(1/years)-1)*100;
   const cagrInterest=(((START_BAL + Math.round(twrAdjBals[n-1] - twrBals[n-1]))/START_BAL)**(1/years)-1)*100;
 
-  // Daily returns: trading P&L as fraction of post-deposit capital base (already deposit-neutral)
+  // Daily returns: trading P&L as fraction of post-deposit capital base (already deposit-neutral).
+  // NOTE: this series is option premium only — interest is tracked separately in dailyInterest.
+  // Under the stated framing (underlying invested 100% at the risk-free rate), total return = rf + premium,
+  // so premium return IS the excess return over rf. Do NOT subtract rf again below.
   const pctR=raw.map(r => r.balStart + r.deposit > 0 ? r.pl / (r.balStart + r.deposit) : 0);
   const meanR=pctR.reduce((s,v)=>s+v,0)/n;
   const stdR=Math.sqrt(pctR.reduce((s,v)=>s+(v-meanR)**2,0)/(n-1));
-  const sharpe=((meanR-0.04/252)/stdR*Math.sqrt(252)).toFixed(2);
+  const sharpe=(meanR/stdR*Math.sqrt(252)).toFixed(2);
 
-  const rfDaily=0.04/252;
-  const downsideSq=pctR.map(r=>r<rfDaily?(r-rfDaily)**2:0);
+  // Sortino on the same excess-return series: MAR is 0, not rf (rf is already netted out).
+  const downsideSq=pctR.map(r=>r<0?r**2:0);
   const downDev=Math.sqrt(downsideSq.reduce((s,v)=>s+v,0)/n);
-  const sortino=downDev>0?((meanR-rfDaily)/downDev*Math.sqrt(252)).toFixed(2):'N/A';
+  const sortino=downDev>0?(meanR/downDev*Math.sqrt(252)).toFixed(2):'N/A';
 
   const grossWins = displayPL.reduce((s,v)=>v>0?s+v:s, 0);
   const grossLoss = displayPL.reduce((s,v)=>v<0?s+Math.abs(v):s, 0);
@@ -341,12 +344,12 @@ function buildDashboard(rawPL, dataAsOf, spyData) {
     <div class="metric">
       <div class="metric-label">Sharpe ratio</div>
       <div class="metric-value success">${sharpe}</div>
-      <div class="metric-sub">vs 4.0% risk-free</div>
+      <div class="metric-sub">Premium excess return over 4.0% rf</div>
     </div>
     <div class="metric">
       <div class="metric-label">Sortino ratio</div>
       <div class="metric-value success">${sortino}</div>
-      <div class="metric-sub">Downside deviation only</div>
+      <div class="metric-sub">Downside deviation, MAR = rf</div>
     </div>`;
 
   const u='mattbp', d='gmail.com';
