@@ -37,6 +37,7 @@ jobs:
         # Random days because IBKR has some type of caching if you use a static value
 
       - name: Update SPY data
+        continue-on-error: true
         shell: pwsh
         run: |
           ./scripts/GetMarketData.ps1 -Ticker "SPY" -OutputPath "spy.csv" -ApiKey "${{ secrets.ALPHA_VANTAGE_KEY }}"
