@@ -165,6 +165,43 @@ if ($null -eq $trades -or @($trades).Count -eq 0) {
 $trades = @($trades)
 Write-Host "  Parsed $($trades.Count) trade(s)" -ForegroundColor Gray
 
+# Step 3a: Restrict to SPX/SPXW options.
+# NetCash is summed blindly below, so ANY non-option activity in the account
+# (ETF/stock purchases, rebalances) would otherwise land in data.csv as phantom P&L.
+$columnNames = $trades[0].PSObject.Properties.Name
+
+$assetCol = @('AssetClass','AssetCategory') | Where-Object { $columnNames -contains $_ } | Select-Object -First 1
+$underCol = @('UnderlyingSymbol','Underlying')  | Where-Object { $columnNames -contains $_ } | Select-Object -First 1
+
+if (-not $assetCol) {
+    Write-Error ("Flex query is missing an asset-class column (AssetClass or AssetCategory). " +
+                 "Add it to the Trades section of query $IbkrQueryId - without it, non-option " +
+                 "trades cannot be excluded and daily P&L will be wrong.")
+    exit 1
+}
+
+if (-not $underCol) {
+    Write-Host "  WARNING: no UnderlyingSymbol column; filtering to ALL options, not just SPX." -ForegroundColor Yellow
+}
+
+$preFilterCount = $trades.Count
+$trades = @($trades | Where-Object {
+    if ($_.$assetCol -ne 'OPT')  { $false }
+    elseif (-not $underCol)      { $true }
+    else                         { $_.$underCol -in @('SPX','SPXW') }
+})
+
+$droppedCount = $preFilterCount - $trades.Count
+if ($droppedCount -gt 0) {
+    Write-Host "  Excluded $droppedCount non-SPX-option trade(s)" -ForegroundColor Yellow
+}
+
+if ($trades.Count -eq 0) {
+    Write-Host "  No SPX option trades in date range" -ForegroundColor Yellow
+    exit 0
+}
+Write-Host "  Retained $($trades.Count) SPX option trade(s)" -ForegroundColor Gray
+
 # Group by TradeDate, sum NetCash
 $dailyData = $trades | Group-Object -Property TradeDate | ForEach-Object {
     $dateRaw = $_.Name
